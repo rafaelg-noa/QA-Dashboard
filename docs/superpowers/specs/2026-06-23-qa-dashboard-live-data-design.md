@@ -101,6 +101,7 @@ The threshold values above are **suggested defaults**, not fixed. Two tiers:
 - The generator (`build.js`) computes **everything** — raw KPIs *and* a **default classification** (`health`, `flags`, `flaggedCount`, leaderboard order) using the config-default thresholds. This default classification is shipped in the snapshot so a **no-JS / no-override** load renders correctly.
 - The frontend **recomputes** `health`, `flags`, `flaggedCount`, and leaderboard order **client-side from the snapshot's raw numbers** whenever the user's effective thresholds differ from the shipped defaults. To make this always possible, the snapshot **must carry every raw input** a classification depends on (per store: `returnRate`, `refundSpike`, `reviewRating`, `reviewDelta`; per ASIN: `returnRate`, `refundSpike` (numeric), `reviewRating`, `reviewDelta`). Classification is pure (raw numbers + thresholds → labels), with one implementation shared by generator and frontend where practical.
 - **Effective threshold** = user `localStorage` override ?? snapshot default. "Reset to defaults" clears the local override; the view returns to the shipped default classification.
+- Each threshold is a **single value applied across store / ASIN / portfolio scopes** (one return-rate breach, one return-rate warn, one refund-spike trigger, one rating-bad, one rating-warn, one rating-drop) and appears **once** in the panel — no scope-specific inputs.
 
 ## 7. Snapshot contract — `data.json`
 
@@ -188,7 +189,7 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
 
 - `generator/*` unit tests against fixtures: join correctness, each metric in §6, snapshot schema validity.
 - `shared/classify.js` unit tests: `health`/`flags`/`flaggedCount` from raw numbers + thresholds, including override scenarios — lowering/raising a threshold re-colors and re-counts correctly, "reset to defaults" restores the shipped classification. (Most error-prone new path: the same `classify` runs in generator and frontend, so one test suite covers both.)
-- Snapshot validated against a JSON schema before commit (bad data never ships).
+- Snapshot validated against a JSON schema before commit (bad data never ships). The schema **asserts presence of every client-recompute input** — the per-store and per-ASIN raw numerics (`returnRate`, `refundSpike`, `reviewRating`, `reviewDelta`) and all six `thresholds` — so live re-classification (§6.1) can never silently break.
 - Frontend smoke test: renders overview + a store from a sample `data.json`; Settings-panel override re-renders without a refetch.
 
 ## 13. Phase 2 (future, separate spec)
