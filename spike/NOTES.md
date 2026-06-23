@@ -111,3 +111,11 @@ Use `pma_query_custom(connector_type: 'amazonmws', report_type: 'economics')` wi
 3. **3 accounts missing from Economics Jun 2026.** StandMore, WyldSkyn, Sirius have no rows in the `economics` report for this window. May be seasonal/product gaps. Spike A coverage check will flag this.
 4. **`net_units_sold` requires special handling.** The field name in the PMA report type differs from what the dataset table exposes. In `pma_query_custom`, request it separately or compute as `units_sold - units_returned`.
 5. **Total Economics volume is high** (7939 rows/30 days across all accounts+ASINs+dates). The generator should always paginate and NOT assume a single 100-row pull is complete.
+
+### Controller verification (2026-06-23) — corrects/augments the above
+Ran `pma_query_custom(economics, dimensions:['account_id'], metrics:[units_sold,units_returned,refunded_product_sales], 2026-05-24→06-22)` in-session — authoritative per-store coverage for the current 30d:
+- **7 of 9 stores active** (not 6): Mind & Mana 8934 sold/218 ret; body and mind 7562/150; Magnificent US 6626/156; Kreativ Farms 1371/34; Ohana 986/28; Veganexus US 436/11; **StandMore 5/0 (barely active but PRESENT — Spike B's partial pull missed it)**.
+- **2 stores absent** in the current 30d: **WyldSkyn (`A387O5GH8GCHW`)** and **Sirius (`A26KHELG1S2YF0`)**. The frontend/build must render a store with no current Economics data gracefully (no crash, show "no data").
+- All active stores' return rates are 0–2.8% (store-level) — under the 4%/5% thresholds; real & sane.
+- **⚠️ PMA token health:** the query returned `_token_warning: "4 account(s) have expired or revoked tokens and were excluded"`. Some Amazon→PMA connections are expiring — flag to Kadok to re-auth (`pma_get_token_health_summary`). Not a Phase-1 blocker (7 stores have data) but coverage will erode if ignored.
+- **⚠️ Data typing:** Economics metric values come back as STRINGS (`"132"`, `"53.54"`). `aggregatePma` (Task 6) MUST coerce with `Number()`/`parseFloat` before arithmetic.
