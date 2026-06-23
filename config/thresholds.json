@@ -1,0 +1,16 @@
+{
+  "classification": {
+    "returnRate": 5.0,
+    "returnRateWarn": 4.0,
+    "refundSpike": 25,
+    "ratingBad": 3.5,
+    "ratingWarn": 4.0,
+    "ratingDrop": -0.2
+  },
+  "windows": {
+    "windowDays": 30,
+    "refundBaselineDays": 30,
+    "trendWeeks": 12,
+    "pullDays": 91
+  }
+}
