@@ -94,10 +94,13 @@ Store `id` = slugified store name (e.g. "body and mind" → `bodyandmind`); name
 
 The threshold values above are **suggested defaults**, not fixed. Two tiers:
 
-- **Classification thresholds** (return-rate breach/warn, refund-spike trigger, rating bad/drop, flag rules) are applied at **render time** from the snapshot's raw numbers, so they are **user-adjustable live in the dashboard** via a **Settings panel** (gear icon): number inputs + "reset to defaults", changes apply instantly with **no rebuild/redeploy**. Overrides are **personal — saved per browser in `localStorage`**; they never affect other users. Shared baseline defaults come from the config file and are carried in the snapshot (§7 `thresholds`); a user with no overrides sees those.
-- **Compute windows** (return-rate/conversion window days, refund baseline, 12-week trend length) live in a single version-controlled **config file** (`config/thresholds.json`) read by the generator. Changing them takes effect on the next refresh. These are rarely touched.
+- **Classification thresholds** (return-rate breach + warn, refund-spike trigger, rating bad + warn, rating-drop, flag rules) are **user-adjustable live** via a **Settings panel** (gear icon): number inputs + "reset to defaults", instant, **no rebuild/redeploy**. Overrides are **personal — saved per browser in `localStorage`**; they never affect other users. Shared baseline defaults come from the config file and are carried in the snapshot (§7 `thresholds`).
+- **Compute windows** (return-rate/conversion window days, refund baseline, 12-week trend length) live in a single version-controlled **config file** (`config/thresholds.json`) read by the generator. Changing them takes effect on the next refresh. **Windows are NOT exposed in the Settings panel** (they require a regenerate). Rarely touched.
 
-Effective threshold = user `localStorage` override ?? snapshot default (from config). "Reset to defaults" clears the local override.
+**Compute boundary (resolves where classification happens):**
+- The generator (`build.js`) computes **everything** — raw KPIs *and* a **default classification** (`health`, `flags`, `flaggedCount`, leaderboard order) using the config-default thresholds. This default classification is shipped in the snapshot so a **no-JS / no-override** load renders correctly.
+- The frontend **recomputes** `health`, `flags`, `flaggedCount`, and leaderboard order **client-side from the snapshot's raw numbers** whenever the user's effective thresholds differ from the shipped defaults. To make this always possible, the snapshot **must carry every raw input** a classification depends on (per store: `returnRate`, `refundSpike`, `reviewRating`, `reviewDelta`; per ASIN: `returnRate`, `refundSpike` (numeric), `reviewRating`, `reviewDelta`). Classification is pure (raw numbers + thresholds → labels), with one implementation shared by generator and frontend where practical.
+- **Effective threshold** = user `localStorage` override ?? snapshot default. "Reset to defaults" clears the local override; the view returns to the shipped default classification.
 
 ## 7. Snapshot contract — `data.json`
 
@@ -108,7 +111,11 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
   "generatedAt": "2026-06-23T12:00:00Z",
   "refreshIntervalHours": 6,
   "window": { "days": 30 },
-  "thresholds": { "returnRate": 5.0, "refundSpike": 25, "ratingBad": 3.5, "ratingDrop": -0.2 },
+  // Defaults from config/thresholds.json. Carries every threshold the Settings panel exposes.
+  "thresholds": { "returnRate": 5.0, "returnRateWarn": 4.0, "refundSpike": 25,
+                  "ratingBad": 3.5, "ratingWarn": 4.0, "ratingDrop": -0.2 },
+  // health / flags / flaggedCount below are the DEFAULT-threshold view (computed by build.js).
+  // The frontend recomputes them from raw numbers when the user has threshold overrides (§6.1).
   "portfolio": {
     "returnRate": 4.1, "returnDelta": 0.3, "refundExposure": 12840.50,
     "flaggedCount": 7, "avgRating": 4.0, "storeCount": 9,
@@ -124,8 +131,10 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
                 "reviewRating": 4.1, "reviewDelta": 0.0, "ratingCount": 6961, "conversion": 10.1 },
       "trend": [/* 12 */], "conv": [/* 12 */],
       "asins": [ { "asin": "B0…", "sku": "…", "title": "…", "brand": "NatriSweet",
-                   "returnRate": 5.2, "refundDelta": "+14%", "reviewRating": 4.1,
+                   "returnRate": 5.2, "refundSpike": 14, "refundDelta": "+14%", "reviewRating": 4.1,
                    "reviewDelta": -0.3, "ratingCount": 412, "flags": ["return","ratingDrop"] } ]
+      // raw numerics (returnRate, refundSpike, reviewRating, reviewDelta) drive client-side
+      // re-classification; refundDelta is a display string only.
     }
   ]
 }
@@ -138,7 +147,8 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
 | `config/thresholds.json` | Shared defaults: classification thresholds + compute windows | — |
 | `generator/baserow.js` | Pull + normalize table 691 → ASIN→ratings map | Baserow token |
 | `generator/pma.js` | Pull Economics + Sessions → per-ASIN/day returns/refunds/conversion + ASIN→store map | PMA token, MCP SDK |
-| `generator/build.js` | Join, compute metrics §6, assemble snapshot §7 | the two above |
+| `shared/classify.js` | Pure: (raw numbers + thresholds) → `health` / `flags` / `flaggedCount`. Used by **both** `build.js` (default view) and the frontend (override recompute) per §6.1 | — |
+| `generator/build.js` | Join, compute metrics §6, run `classify` with config defaults, assemble snapshot §7 | the two above, `classify` |
 | `generator/index.js` | Orchestrate → write `public/data.json` | build.js |
 | `public/index.html` | Dashboard: load `data.json`, render overview + per-store | data.json contract |
 | `.github/workflows/refresh.yml` | Cron, run generator, commit `data.json` | GH secrets |
@@ -177,8 +187,9 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
 ## 12. Testing
 
 - `generator/*` unit tests against fixtures: join correctness, each metric in §6, snapshot schema validity.
+- `shared/classify.js` unit tests: `health`/`flags`/`flaggedCount` from raw numbers + thresholds, including override scenarios — lowering/raising a threshold re-colors and re-counts correctly, "reset to defaults" restores the shipped classification. (Most error-prone new path: the same `classify` runs in generator and frontend, so one test suite covers both.)
 - Snapshot validated against a JSON schema before commit (bad data never ships).
-- Frontend smoke test: renders overview + a store from a sample `data.json`.
+- Frontend smoke test: renders overview + a store from a sample `data.json`; Settings-panel override re-renders without a refetch.
 
 ## 13. Phase 2 (future, separate spec)
 
