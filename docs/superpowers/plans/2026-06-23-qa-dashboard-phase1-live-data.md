@@ -12,6 +12,23 @@
 
 ---
 
+## Spike outcomes (2026-06-23) — BINDING deltas to the spec/plan
+
+Spikes A+B ran and de-risked the build. Full evidence in `spike/NOTES.md` (committed). These corrections **override** the spec where they conflict and are mandatory for the build tasks:
+
+1. **PMA pull path corrected.** The returns/refunds data is NOT reachable via the dataset tools (`pma_get_dataset_data`/`pma_get_data_table_data` fail/timeout headlessly). The working headless path is **`pma_query_custom(connector_type:'amazonmws', report_type:'economics', dimensions:['account_id','asin','date'], metrics:[…≤10])`**, paginated (`limit:100`,`offset`), paced ~2.2s/call (<30 req/min). Transport = `StreamableHTTPClientTransport` to `https://pma-mcp.web.app/` + `Authorization: Bearer`. (Affects Tasks 6, 9.)
+2. **Conversion (Sessions) is UNAVAILABLE in Phase 1.** `sales_and_traffic_by_asin` times out headlessly; dataset windows are stale. `unitSessionPercentage` cannot be pulled. → **Conversion degrades to "n/a": no conversion KPI value, no trend conversion overlay.** Build + frontend must treat conversion as optional/null and never crash. Recoverable later when Kadok fixes the Sessions dataset. (Affects Tasks 6, 7, 11, 12, 13.) Spec §1's "~70%" shrinks slightly; returns/refunds/ratings remain fully live.
+3. **`account_id` is BARE** in economics rows (`A8YCR05DHF8XC`); `config/stores.json` `accountId` is stored bare to match — join directly, no prefix-stripping. (Task 6/7.)
+4. **Economics metric values arrive as STRINGS** (`"132"`,`"53.54"`) → coerce with `Number()` before arithmetic. (Task 6.)
+5. **Baserow field shapes are nested:** `Brand` = linked-record array `[{value:{value:"Name"}}]`; `Amazon Listing Status` / `Inventory Health` = single-select `{value:"Active"}`. `normalizeBaserow` must extract `.value.value` / `.value` (see `extractValue` in NOTES). The committed fixture preserves these shapes. (Task 5.)
+6. **2 of 9 stores (WyldSkyn, Sirius) have no current Economics data**; StandMore is barely active (5 units). Build + frontend must render a store with no data as "no data", not crash. Portfolio rollups must skip empty stores cleanly. (Tasks 7, 11, 12.)
+7. **History ≥12 weeks confirmed** → 12-week return-rate trend is feasible (no degrade needed for the return-rate series; only the conversion overlay is absent).
+8. **Inputs already produced by the spikes (reuse, don't rebuild):** `config/stores.json` (9 stores), `test/fixtures/pma-economics.sample.json` (203 real rows, ~12wk), `test/fixtures/baserow-691.sample.json` (20 rows), `spike/asin-universe.json` (gitignored, 46 ASINs).
+
+**Open items for Kadok (PMA-side, non-blocking):** (a) restore the Sessions dataset window / investigate the `sales_and_traffic_by_asin` timeout to bring conversion back; (b) re-auth the **4 Amazon→PMA accounts with expired/revoked tokens** (`pma_get_token_health_summary`) before coverage erodes.
+
+---
+
 ## Identity guardrails (read before every commit)
 
 This repo is **Novaeo-isolated**. The whole project is void if it touches EGDC identity.
