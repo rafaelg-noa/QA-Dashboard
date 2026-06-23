@@ -73,7 +73,7 @@ No secrets reach the browser. The page only `fetch()`es `data.json`.
 
 ## 6. Metric definitions (single source of truth)
 
-All windows configurable; defaults below.
+Store `id` = slugified store name (e.g. "body and mind" → `bodyandmind`); names map to PMA `account_id` via a small lookup built during the PMA pull. The **window knob** (default 30d) applies to **return rate and conversion** only; **refund spike** is fixed at last-30d-vs-prior-30d; **trends** are fixed at 12 weekly buckets. Defaults below.
 
 | Metric | Definition | Threshold |
 |---|---|---|
@@ -92,7 +92,7 @@ All windows configurable; defaults below.
 
 ## 7. Snapshot contract — `data.json`
 
-Shaped to mirror the existing dashboard's `STORES` model so the frontend changes stay minimal.
+Shaped to mirror the existing dashboard's `STORES` model so the frontend changes stay minimal. (Store/ASIN values below are **illustrative** — e.g. `"northgate"` is a placeholder, not one of the 9 real stores in §3.)
 
 ```jsonc
 {
@@ -140,7 +140,7 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
 - Replace **sentiment-themes** panel → **review-ratings** panel (rating, count, Δ).
 - Flagged-ASIN table: swap `top return reason` / `neg themes` columns → `review rating` + `Δ`.
 - Remove triage + repeat-purchase panels (Phase 2). Correct the footnote to real sources.
-- Add **"last synced / next refresh in ~Xh"** countdown + a re-fetch button.
+- Add **"last synced / next refresh in ~Xh"** countdown + a re-fetch button. *(The button re-loads the committed `data.json` — it does not pull from upstream sources; true on-demand regenerate is a Phase-2 non-goal.)*
 
 ## 9. Hosting, auth, refresh
 
