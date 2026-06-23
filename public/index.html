@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Signal — Store Quality Monitor</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c232c;
+    --line: #2a323d;
+    --line-soft: #222932;
+    --ink: #e6edf3;
+    --ink-dim: #8b97a5;
+    --ink-faint: #5a6573;
+    --good: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --accent: #58a6ff;
+    --good-bg: rgba(63,185,80,.12);
+    --warn-bg: rgba(210,153,34,.12);
+    --bad-bg: rgba(248,81,73,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---- Shell ---- */
+  .shell { display: flex; min-height: 100vh; }
+  .rail {
+    width: 248px; flex-shrink: 0; background: var(--panel);
+    border-right: 1px solid var(--line); padding: 18px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; padding: 4px 8px 16px; }
+  .brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px var(--good-bg); }
+  .brand b { font-size: 14px; letter-spacing: .2px; }
+  .brand span { font-size: 11px; color: var(--ink-faint); display: block; font-weight: 400; letter-spacing: .3px; }
+
+  .rail-label { font-size: 10px; text-transform: uppercase; letter-spacing: .9px; color: var(--ink-faint); padding: 14px 8px 6px; }
+
+  .store-btn {
+    width: 100%; text-align: left; background: transparent; border: 1px solid transparent;
+    color: var(--ink-dim); padding: 9px 10px; border-radius: 7px; cursor: pointer;
+    display: flex; align-items: center; gap: 9px; font-size: 13px; transition: background .12s, color .12s;
+  }
+  .store-btn:hover { background: var(--panel-2); color: var(--ink); }
+  .store-btn.active { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
+  .store-btn .pip { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .store-btn .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .store-btn .ct { font-size: 11px; color: var(--ink-faint); }
+  .pip.good { background: var(--good); } .pip.warn { background: var(--warn); } .pip.bad { background: var(--bad); }
+  .pip.nodata { background: var(--ink-faint); opacity: .55; }
+  .store-btn.pinned { border-bottom: 1px solid var(--line-soft); border-radius: 7px; margin-bottom: 5px; padding-bottom: 11px; }
+  .store-btn.pinned .nm { font-weight: 600; }
+
+  /* ---- Main ---- */
+  .main { flex: 1; min-width: 0; padding: 22px 28px 60px; }
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  .h1 { font-size: 22px; letter-spacing: -.2px; }
+  .h1 .sub { font-size: 13px; color: var(--ink-dim); font-weight: 400; margin-top: 2px; }
+  .health-tag { font-size: 11px; padding: 5px 11px; border-radius: 20px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; border: 1px solid; }
+  .health-tag.good { color: var(--good); background: var(--good-bg); border-color: rgba(63,185,80,.3); }
+  .health-tag.warn { color: var(--warn); background: var(--warn-bg); border-color: rgba(210,153,34,.3); }
+  .health-tag.bad { color: var(--bad); background: var(--bad-bg); border-color: rgba(248,81,73,.3); }
+  .health-tag.nodata { color: var(--ink-dim); background: var(--panel-2); border-color: var(--line); }
+
+  .marketplace-row { display: flex; gap: 6px; margin: 18px 0 4px; flex-wrap: wrap; }
+
+  /* ---- KPI strip ---- */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 18px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; position: relative; }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--ink-faint); border-radius: 10px 0 0 10px; }
+  .kpi.good::before { background: var(--good); } .kpi.warn::before { background: var(--warn); } .kpi.bad::before { background: var(--bad); }
+  .kpi .lbl { font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .6px; }
+  .kpi .val { font-size: 26px; font-weight: 600; margin-top: 6px; letter-spacing: -.5px; }
+  .kpi .val small { font-size: 14px; color: var(--ink-dim); font-weight: 400; }
+  .kpi .delta { font-size: 12px; margin-top: 3px; }
+  .delta.up-bad { color: var(--bad); } .delta.down-good { color: var(--good); } .delta.flat { color: var(--ink-faint); }
+  .kpi .thresh { font-size: 10px; color: var(--ink-faint); margin-top: 6px; }
+  .kpi:hover, .kpi:focus-within { z-index: 60; }
+
+  /* ---- Grid layout ---- */
+  .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-top: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; position: relative; }
+  .card:hover, .card:focus-within { z-index: 40; }
+  .card h3 { font-size: 13px; letter-spacing: .2px; display: flex; align-items: center; }
+  .card h3 .meta { font-size: 11px; color: var(--ink-faint); font-weight: 400; margin-left: auto; padding-left: 12px; }
+
+  /* ---- Trend chart ---- */
+  .chart-wrap { margin-top: 14px; }
+  svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--ink-dim); }
+  .legend i { display: inline-block; width: 18px; height: 2px; vertical-align: middle; margin-right: 5px; }
+
+  /* ---- Returns table ---- */
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--ink-faint); padding: 0 10px 8px; font-weight: 600; }
+  td { padding: 9px 10px; border-top: 1px solid var(--line-soft); }
+  tbody tr { cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: var(--panel-2); }
+  .asin { color: var(--accent); }
+  .rate-pill { font-size: 11px; padding: 2px 8px; border-radius: 5px; font-weight: 600; }
+  .rate-pill.good { color: var(--good); background: var(--good-bg); }
+  .rate-pill.warn { color: var(--warn); background: var(--warn-bg); }
+  .rate-pill.bad { color: var(--bad); background: var(--bad-bg); }
+  td.num { font-variant-numeric: tabular-nums; }
+  .health-pill { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; border: 1px solid; display: inline-block; }
+  .health-pill.good { color: var(--good); background: var(--good-bg); border-color: rgba(63,185,80,.3); }
+  .health-pill.warn { color: var(--warn); background: var(--warn-bg); border-color: rgba(210,153,34,.3); }
+  .health-pill.bad { color: var(--bad); background: var(--bad-bg); border-color: rgba(248,81,73,.3); }
+  .health-pill.nodata { color: var(--ink-dim); background: var(--panel-2); border-color: var(--line); }
+
+  /* ---- Review ratings list ---- */
+  .rating-hero { display: flex; align-items: baseline; gap: 10px; margin: 8px 0 4px; }
+  .rating-hero .rv { font-size: 30px; font-weight: 600; letter-spacing: -.5px; }
+  .rating-hero .rv small { font-size: 14px; color: var(--ink-dim); font-weight: 400; }
+  .rating-hero .rd { font-size: 12px; }
+  .rating-list { margin-top: 8px; }
+  .rating-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line-soft); }
+  .rating-row:last-child { border-bottom: none; }
+  .rating-row .th { flex: 1; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rating-row .rstar { font-size: 12px; font-weight: 600; width: 34px; text-align: right; }
+  .rating-row .rstar.good { color: var(--good); } .rating-row .rstar.warn { color: var(--warn); } .rating-row .rstar.bad { color: var(--bad); }
+  .rating-row .rdrop { font-size: 11px; width: 44px; text-align: right; }
+
+  /* ---- Error panel ---- */
+  .err-panel { background: var(--bad-bg); border: 1px solid rgba(248,81,73,.3); border-radius: 10px; padding: 22px 24px; margin-top: 20px; }
+  .err-panel h2 { font-size: 16px; color: var(--bad); margin-bottom: 8px; }
+  .err-panel p { font-size: 13px; color: var(--ink-dim); line-height: 1.6; }
+  .err-panel code { font-family: ui-monospace, monospace; font-size: 12px; color: var(--ink); background: #0a0e14; padding: 2px 6px; border-radius: 4px; }
+
+  /* ---- Tooltip ---- */
+  .info {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--ink-faint);
+    color: var(--ink-faint); font-size: 9px; font-weight: 700; line-height: 1; cursor: help;
+    margin-left: 6px; vertical-align: middle; flex-shrink: 0; position: relative; font-style: normal;
+    transition: border-color .12s, color .12s;
+  }
+  .info:hover, .info:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+  .info .tip {
+    position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%) translateY(4px);
+    width: 268px; background: #0a0e14; border: 1px solid var(--line);
+    border-radius: 8px; padding: 11px 13px; z-index: 50;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .14s ease, transform .14s ease;
+    box-shadow: 0 8px 28px rgba(0,0,0,.55);
+    text-align: left; white-space: normal;
+  }
+  .info:hover .tip, .info:focus .tip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+  .info .tip::after {
+    content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: var(--line);
+  }
+  .tip .tdef { font-size: 12px; color: var(--ink); font-weight: 400; line-height: 1.5; letter-spacing: 0; text-transform: none; }
+  .tip .twhy { font-size: 11.5px; color: var(--ink-dim); font-weight: 400; line-height: 1.5; letter-spacing: 0; text-transform: none; margin-top: 7px; }
+  .tip .twhy b { color: var(--ink); font-weight: 600; }
+  .tip .tsrc { font-size: 10px; color: var(--ink-faint); margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--line-soft);
+    letter-spacing: .3px; text-transform: none; font-family: ui-monospace, monospace; }
+  /* tooltips near the right edge flip leftward */
+  .info.tip-left .tip { left: auto; right: -6px; transform: translateX(0) translateY(4px); }
+  .info.tip-left:hover .tip, .info.tip-left:focus .tip { transform: translateX(0) translateY(0); }
+  .info.tip-left .tip::after { left: auto; right: 10px; transform: none; }
+  /* tooltips that open downward (top-row cards, where there's no room above) */
+  .info.tip-down .tip { bottom: auto; top: calc(100% + 9px); transform: translateX(-50%) translateY(-4px); }
+  .info.tip-down:hover .tip, .info.tip-down:focus .tip { transform: translateX(-50%) translateY(0); }
+  .info.tip-down .tip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--line); }
+  .info.tip-down.tip-left .tip { transform: translateX(0) translateY(-4px); }
+  .info.tip-down.tip-left:hover .tip, .info.tip-down.tip-left:focus .tip { transform: translateX(0) translateY(0); }
+  .info.tip-down.tip-left .tip::after { left: auto; right: 10px; transform: none; }
+
+  .full { grid-column: 1 / -1; }
+  .empty { color: var(--ink-faint); font-size: 13px; padding: 20px; text-align: center; }
+  .footnote { color: var(--ink-faint); font-size: 11px; margin-top: 22px; line-height: 1.6; }
+
+  @media (max-width: 900px) {
+    .shell { flex-direction: column; }
+    .rail { width: 100%; height: auto; position: static; flex-direction: column; }
+    .rail-stores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .store-btn.pinned { grid-column: 1 / -1; }
+    .grid { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .main { padding: 18px 16px 50px; }
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail">
+    <div class="brand">
+      <span class="dot" id="brandDot"></span>
+      <b>QA Signal<span>Amazon store quality monitor</span></b>
+    </div>
+    <div class="rail-label">Stores</div>
+    <div class="rail-stores" id="storeList"></div>
+    <div class="rail-label" style="margin-top:auto;">Coverage</div>
+    <div style="padding:0 8px; font-size:12px; color:var(--ink-dim); line-height:1.6;">
+      <span class="mono" id="covReporting">—</span> stores reporting
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <!-- rendered by render() -->
+  </main>
+</div>
+
+<script type="module">
+import { storeHealth, asinFlags, isFlagged, rateClass, ratingClass, flaggedCount } from "./shared/classify.js";
+
+// ---------- Load live snapshot ----------
+let SNAP, STORES, T;
+try {
+  SNAP = await fetch("./data.json", { cache: "no-store" }).then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} loading data.json`);
+    return r.json();
+  });
+  STORES = SNAP.stores;
+  T = SNAP.thresholds;
+} catch (err) {
+  renderError(err);
+}
+
+// activeView: "all" (portfolio) | a store id. Default = All Stores.
+let activeView = "all";
+
+// ---------- HTML escaping ----------
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+// ---------- Null-safe formatters ----------
+function fmtPct(v, dp = 1){ return v == null || !isFinite(v) ? "n/a" : `${v.toFixed(dp)}%`; }
+function fmtNum(v, dp = 0){ return v == null || !isFinite(v) ? "n/a" : v.toFixed(dp); }
+function fmtRating(v){ return v == null || !isFinite(v) ? "n/a" : v.toFixed(1); }
+function fmtCount(v){ return v == null || !isFinite(v) ? "n/a" : v.toLocaleString("en-US"); }
+function fmtMoney(v){
+  if (v == null || !isFinite(v)) return "n/a";
+  return "$" + Math.round(v).toLocaleString("en-US");
+}
+function fmtSpike(v){
+  if (v == null || !isFinite(v)) return "n/a";
+  return `${v > 0 ? "+" : ""}${Math.round(v)}%`;
+}
+// Same as fmtSpike but emits a <small>%</small> suffix for KPI value styling.
+function fmtSpikeVal(v){
+  if (v == null || !isFinite(v)) return "n/a";
+  return `${v > 0 ? "+" : ""}${Math.round(v)}<small>%</small>`;
+}
+function relTime(iso){
+  const then = new Date(iso).getTime();
+  if (!isFinite(then)) return "unknown";
+  const sec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (sec < 60) return "just now";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hr${hr === 1 ? "" : "s"} ago`;
+  const d = Math.round(hr / 24);
+  return `${d} day${d === 1 ? "" : "s"} ago`;
+}
+// threshold label, e.g. 5 -> "5%", 4.5 -> "4.5%"
+function thr(v){ return `${(v % 1 ? v.toFixed(1) : v.toFixed(0))}%`; }
+// "1 ASIN" / "3 ASINs"
+function nAsins(n){ return `${n} ASIN${n === 1 ? "" : "s"}`; }
+function nFlagged(n){ return `${n} flagged ASIN${n === 1 ? "" : "s"}`; }
+// color a rating value: returns a CSS var name; "good" maps to neutral ink so only warn/bad pop.
+function ratingColorVar(v){
+  const c = ratingClass(v, T);
+  return c === "good" ? "ink" : c;
+}
+
+const HEALTH_TXT = { good: "Healthy", warn: "Watch", bad: "Action needed", nodata: "No data" };
+
+// ---------- Delta rendering ----------
+// d in percentage points; higherIsBad: an increase is bad (e.g. return rate).
+function deltaTxt(d, unit, higherIsBad){
+  if (d == null || !isFinite(d) || Math.abs(d) < 0.05) return `<span class="flat">no change</span>`;
+  const up = d > 0;
+  const bad = higherIsBad ? up : !up;
+  const cls = bad ? "up-bad" : "down-good";
+  const arrow = up ? "▲" : "▼";
+  return `<span class="${cls}">${arrow} ${Math.abs(d).toFixed(1)} ${unit}</span>`;
+}
+// Rating delta: a drop (negative) is bad.
+function ratingDeltaTxt(d){
+  if (d == null || !isFinite(d) || Math.abs(d) < 0.05) return `<span class="flat">flat</span>`;
+  const up = d > 0;
+  const cls = up ? "down-good" : "up-bad";
+  const arrow = up ? "▲" : "▼";
+  return `<span class="${cls}">${arrow} ${Math.abs(d).toFixed(1)}</span>`;
+}
+
+// ---------- Tooltip content (real Phase-1 sources) ----------
+const TIPS = {
+  returnRate: {
+    def: "The share of units sold that customers sent back, over the selected window.",
+    why: "The single clearest <b>outside-the-warehouse</b> signal that something is wrong with a product. A climbing return rate means buyers are unhappy after purchase — before it ever shows up in your reviews.",
+    src: "PMA · Amazon Seller Central economics (units returned ÷ units sold)"
+  },
+  refundSpike: {
+    def: "Change in refund volume over the current window versus the prior baseline window.",
+    why: "A money-weighted early warning. Refunds spike before review scores fully react, so a sudden jump flags a quality issue that's actively costing you margin right now.",
+    src: "PMA · Amazon Seller Central economics (refunded product sales)"
+  },
+  reviewRating: {
+    def: "The store's units-weighted average Amazon star rating across its rated ASINs.",
+    why: "The public scorecard buyers see first. A weighted average keeps high-volume listings from being masked by a few obscure ones, so it tracks the rating that actually drives sales.",
+    src: "Baserow product master · Amazon review rating"
+  },
+  reviewDelta: {
+    def: "Change in the store's average star rating versus the prior snapshot.",
+    why: "Ratings move slowly, so any visible drop is meaningful. A falling rating confirms a quality problem the returns and refunds signals are already hinting at.",
+    src: "Baserow product master · rating change"
+  },
+  conversion: {
+    def: "Unit session percentage — the share of product page sessions that ended in a purchase.",
+    why: "Falling conversion alongside a rising return rate suggests the listing itself is losing buyers, not just disappointing them after the sale.",
+    src: "Sessions (unit session %) — pending; not available this window"
+  },
+  trend: {
+    def: "Return rate plotted weekly over 12 weeks against your breach threshold.",
+    why: "Direction matters more than any single number. A rate creeping toward the dashed line lets you act before it breaches. (Conversion overlay pending — Sessions unavailable.)",
+    src: "PMA · Amazon Seller Central economics (weekly returns ÷ sold)"
+  },
+  flagged: {
+    def: "Products that breached a QA threshold — return rate, refund spike, or a rating drop — with their return rate, refund change, and current review rating.",
+    why: "Your action queue. Each row is a product that needs investigation, surfaced so the worst offenders are easy to find.",
+    src: "PMA economics (returns/refunds) · Baserow ratings"
+  },
+  refundExposure: {
+    def: "Total refunded product sales across the portfolio over the current window.",
+    why: "The dollars already handed back to customers. It puts a hard cost on quality problems and sizes the prize for fixing them.",
+    src: "PMA · Amazon Seller Central economics (refunded product sales)"
+  },
+  avgRating: {
+    def: "Portfolio-wide units-weighted average Amazon star rating across all rated ASINs.",
+    why: "One number for overall customer satisfaction. Weighting by rating volume keeps it representative of what buyers actually experience.",
+    src: "Baserow product master · weighted across stores"
+  }
+};
+
+function tip(key, alignLeft, openDown){
+  const t = TIPS[key]; if (!t) return "";
+  const cls = "info" + (alignLeft ? " tip-left" : "") + (openDown ? " tip-down" : "");
+  return `<span class="${cls}" tabindex="0" role="button" aria-label="More information">i<span class="tip" role="tooltip">
+    <span class="tdef">${t.def}</span>
+    <span class="twhy">${t.why}</span>
+    <span class="tsrc">Source: ${t.src}</span>
+  </span></span>`;
+}
+// Convert any leftover .info-slot placeholders in freshly-rendered HTML into tooltips.
+function fillSlots(root){
+  root.querySelectorAll(".info-slot").forEach(slot => {
+    slot.outerHTML = tip(slot.dataset.tip, slot.dataset.left === "1", slot.dataset.down === "1");
+  });
+}
+
+// ---------- Rail ----------
+function activeStoreCount(){ return STORES.filter(s => s.health !== "nodata").length; }
+
+function renderStoreList(){
+  const el = document.getElementById("storeList");
+  const allActive = activeView === "all";
+  const head = `
+    <button class="store-btn pinned ${allActive ? "active" : ""}" data-id="all">
+      <span class="pip" style="background:var(--accent)"></span>
+      <span class="nm">All Stores</span>
+      <span class="ct">${STORES.length}</span>
+    </button>`;
+  const rows = STORES.map(s => `
+    <button class="store-btn ${s.id === activeView ? "active" : ""}" data-id="${esc(s.id)}">
+      <span class="pip ${s.health}"></span>
+      <span class="nm">${esc(s.name)}</span>
+      <span class="ct">${s.asins.length}</span>
+    </button>`).join("");
+  el.innerHTML = head + rows;
+  el.querySelectorAll(".store-btn").forEach(b =>
+    b.onclick = () => { activeView = b.dataset.id; render(); });
+  document.getElementById("covReporting").textContent = `${activeStoreCount()} / ${STORES.length}`;
+}
+
+// ---------- Trend chart (shared by portfolio + per-store) ----------
+// series: 12 weekly numbers, may contain null (gaps). breach: threshold %.
+function trendSvg(series, breach){
+  const W = 520, H = 190, padL = 34, padR = 12, padT = 12, padB = 24;
+  const n = series.length;
+  const present = series.filter(v => v != null && isFinite(v));
+  if (!present.length){
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Return rate trend — no data">
+      <text x="${W/2}" y="${H/2}" fill="var(--ink-faint)" font-size="12" text-anchor="middle">No trend data</text>
+    </svg>`;
+  }
+  const max = Math.max(breach + 1, ...present);
+  const min = 0;
+  const x = i => padL + (i / (n - 1)) * (W - padL - padR);
+  const y = v => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
+  // Build a path that breaks across null gaps.
+  let d = "", pendingMove = true;
+  series.forEach((v, i) => {
+    if (v == null || !isFinite(v)){ pendingMove = true; return; }
+    d += `${pendingMove ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)} `;
+    pendingMove = false;
+  });
+  const threshY = y(breach);
+  const weeks = ["12","","10","","8","","6","","4","","2",""];
+  const grid = [0,2,4,6].map(v => v <= max ?
+    `<line x1="${padL}" x2="${W-padR}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line-soft)"/>
+     <text x="4" y="${y(v)+3}" fill="var(--ink-faint)" font-size="9">${v}%</text>` : "").join("");
+  // Last present point gets a dot, colored by breach.
+  let lastIdx = -1;
+  for (let i = n - 1; i >= 0; i--){ if (series[i] != null && isFinite(series[i])){ lastIdx = i; break; } }
+  const dots = series.map((v, i) =>
+    (v != null && isFinite(v) && i === lastIdx)
+      ? `<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${v >= breach ? "var(--bad)" : "var(--accent)"}"/>`
+      : "").join("");
+  return `
+  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Return rate trend over 12 weeks">
+    ${grid}
+    <line x1="${padL}" x2="${W-padR}" y1="${threshY}" y2="${threshY}" stroke="var(--bad)" stroke-dasharray="4 4" stroke-width="1.2" opacity=".7"/>
+    <path d="${d.trim()}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
+    ${dots}
+    ${weeks.map((w,i)=>w?`<text x="${x(i)}" y="${H-7}" fill="var(--ink-faint)" font-size="9" text-anchor="middle">${w}w</text>`:"").join("")}
+  </svg>`;
+}
+function trendCard(series, breach){
+  return `
+    <div class="card">
+      <h3>Return rate trend <span class="info-slot" data-tip="trend"></span><span class="meta">PMA economics · 12 wk · vs threshold</span></h3>
+      <div class="chart-wrap">${trendSvg(series, breach)}</div>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i>Return rate</span>
+        <span><i style="background:var(--bad);opacity:.7"></i>Breach threshold (${thr(breach)})</span>
+        <span><i style="background:var(--ink-faint)"></i>Conversion n/a</span>
+      </div>
+    </div>`;
+}
+
+// ---------- KPI card ----------
+function kpiCard(c, alignLeft){
+  return `
+    <div class="kpi ${c.cls || ""}">
+      <div class="lbl">${c.lbl}${tip(c.tip, alignLeft, true)}</div>
+      <div class="val mono">${c.val}</div>
+      <div class="delta">${c.delta || ""}</div>
+      <div class="thresh">${c.thresh || ""}</div>
+    </div>`;
+}
+
+// ====================================================================
+// ALL-STORES portfolio view
+// ====================================================================
+function renderPortfolio(){
+  const p = SNAP.portfolio;
+  const rrCls = rateClass(p.returnRate, T);
+  const ratingCls = ratingClass(p.avgRating, T);
+
+  const kpis = [
+    kpiCard({ lbl:"Portfolio return rate", tip:"returnRate", cls:rrCls,
+      val:`${fmtRating(p.returnRate)}<small>%</small>`,
+      delta: deltaTxt(p.returnDelta, "pp", true),
+      thresh:`breach at ${thr(T.returnRate)}` }, false),
+    kpiCard({ lbl:"Refund exposure", tip:"refundExposure",
+      val:`${fmtMoney(p.refundExposure)}`,
+      delta:`<span class="flat">refunded product sales</span>`, thresh:`last ${SNAP.window.days} days` }, false),
+    kpiCard({ lbl:"Flagged ASINs", tip:"flagged", cls: p.flaggedCount > 0 ? "warn" : "good",
+      val:`${fmtNum(p.flaggedCount)}`,
+      delta:`<span class="flat">across ${p.storeCount} stores</span>`, thresh:"threshold breaches" }, true),
+    kpiCard({ lbl:"Avg rating", tip:"avgRating", cls:ratingCls,
+      val:`${fmtRating(p.avgRating)}<small> / 5</small>`,
+      delta:`<span class="flat">weighted</span>`, thresh:"units-weighted across stores" }, true)
+  ].join("");
+
+  // Leaderboard (worst-health first — data is pre-sorted).
+  const lbRows = p.leaderboard.map(l => `
+    <tr data-id="${esc(l.id)}">
+      <td>${esc(l.name)}</td>
+      <td><span class="health-pill ${l.health}">${HEALTH_TXT[l.health] || l.health}</span></td>
+      <td class="num"><span class="rate-pill ${rateClass(l.returnRate, T)}">${fmtPct(l.returnRate)}</span></td>
+      <td class="num mono">${fmtSpike(l.refundSpike)}</td>
+      <td class="num"><span style="color:var(--${ratingColorVar(l.avgRating)})">${fmtRating(l.avgRating)}</span></td>
+      <td class="num mono">${l.flagged}</td>
+    </tr>`).join("");
+
+  // Worst ASINs roll-up across all stores (flagged, sorted by return rate desc, top 8).
+  const worst = [];
+  for (const s of STORES){
+    for (const a of s.asins){
+      if (isFlagged(a, T)) worst.push({ a, storeName: s.name });
+    }
+  }
+  worst.sort((x, y) => (y.a.returnRate ?? -1) - (x.a.returnRate ?? -1));
+  const worstRows = worst.slice(0, 8).map(({ a, storeName }) => `
+    <tr>
+      <td><span class="asin mono">${esc(a.asin)}</span><br><span style="color:var(--ink-faint);font-size:11px">${esc(storeName)}</span></td>
+      <td>${a.title ? `<span style="color:var(--ink-dim)">${esc(a.title.length > 54 ? a.title.slice(0,54) + "…" : a.title)}</span>` : `<span style="color:var(--ink-faint)">—</span>`}</td>
+      <td class="num"><span class="rate-pill ${rateClass(a.returnRate, T)}">${fmtPct(a.returnRate)}</span></td>
+      <td class="num mono">${esc(a.refundDelta ?? "n/a")}</td>
+      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating)})">${fmtRating(a.reviewRating)}</span></td>
+    </tr>`).join("");
+
+  document.getElementById("main").innerHTML = `
+    <div class="topbar">
+      <div class="h1">All Stores
+        <div class="sub">${activeStoreCount()} of ${STORES.length} stores reporting · ${nFlagged(p.flaggedCount)} · last synced ${relTime(SNAP.generatedAt)}</div>
+      </div>
+      <div class="health-tag ${p.returnRate >= T.returnRate ? "bad" : (p.flaggedCount > 0 ? "warn" : "good")}">Portfolio</div>
+    </div>
+
+    <div class="kpis">${kpis}</div>
+
+    <div class="grid">
+      ${trendCard(p.trend, T.returnRate)}
+
+      <div class="card">
+        <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
+        <table>
+          <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
+          <tbody id="lbBody">${lbRows}</tbody>
+        </table>
+      </div>
+
+      <div class="card full">
+        <h3>Worst-offending ASINs <span class="info-slot" data-tip="flagged"></span><span class="meta">flagged across all stores · highest return rate first</span></h3>
+        <table>
+          <thead><tr><th>ASIN / Store</th><th>Title</th><th>Return rate</th><th>Refund Δ</th><th>Review rating</th></tr></thead>
+          <tbody>${worstRows || `<tr><td colspan="5" class="empty">No flagged ASINs</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>
+
+    ${footnote()}`;
+
+  // Clicking a leaderboard row selects that store.
+  document.querySelectorAll("#lbBody tr").forEach(tr =>
+    tr.onclick = () => { activeView = tr.dataset.id; render(); });
+  fillSlots(document.getElementById("main"));
+}
+
+// ====================================================================
+// PER-STORE view
+// ====================================================================
+function renderStore(store){
+  const s = store, k = s.kpis;
+  document.getElementById("brandDot").style.background = `var(--${s.health === "nodata" ? "ink-faint" : s.health})`;
+
+  if (s.health === "nodata"){
+    document.getElementById("main").innerHTML = `
+      <div class="topbar">
+        <div class="h1">${esc(s.name)}
+          <div class="sub">0 ASINs · last synced ${relTime(SNAP.generatedAt)}</div>
+        </div>
+        <div class="health-tag nodata">No data</div>
+      </div>
+      <div class="err-panel" style="background:var(--panel);border-color:var(--line)">
+        <h2 style="color:var(--ink-dim)">No recent sales data for this store</h2>
+        <p>This store has no Amazon economics activity in the current ${SNAP.window.days}-day window, so return, refund, rating, and conversion metrics are unavailable. It will populate automatically on the next refresh once orders resume.</p>
+      </div>
+      ${footnote()}`;
+    fillSlots(document.getElementById("main"));
+    return;
+  }
+
+  const rrCls = rateClass(k.returnRate, T);
+  const refundCls = k.refundSpike == null ? "" : (k.refundSpike > T.refundSpike ? "bad" : k.refundSpike > T.refundSpike * 0.6 ? "warn" : "good");
+  const ratingCls = ratingClass(k.reviewRating, T);
+
+  const kpis = [
+    kpiCard({ lbl:"Return rate", tip:"returnRate", cls:rrCls,
+      val:`${fmtRating(k.returnRate)}<small>%</small>`,
+      delta: deltaTxt(k.returnDelta, "pp", true),
+      thresh:`breach at ${thr(T.returnRate)}` }, false),
+    kpiCard({ lbl:"Refund spike", tip:"refundSpike", cls:refundCls,
+      val: fmtSpikeVal(k.refundSpike),
+      delta:`<span class="flat">vs prior window</span>`, thresh:`breach at &gt;${T.refundSpike}%` }, false),
+    kpiCard({ lbl:"Review rating", tip:"reviewRating", cls:ratingCls,
+      val:`${fmtRating(k.reviewRating)}<small> / 5</small>`,
+      delta:`${ratingDeltaTxt(k.reviewDelta)} · ${fmtCount(k.ratingCount)} ratings`,
+      thresh:`watch &lt;${T.ratingWarn} · action &lt;${T.ratingBad}` }, true),
+    kpiCard({ lbl:"Conversion", tip:"conversion",
+      val:`n/a`,
+      delta:`<span class="flat">Sessions pending</span>`, thresh:"unit session % — unavailable" }, true)
+  ].join("");
+
+  // Review ratings card: store rating hero + per-ASIN rated list (worst first).
+  const ratedAsins = s.asins
+    .filter(a => a.reviewRating != null && isFinite(a.reviewRating))
+    .sort((x, y) => x.reviewRating - y.reviewRating);
+  const ratingRows = ratedAsins.map(a => {
+    const cls = ratingClass(a.reviewRating, T);
+    const label = a.title ? esc(a.title) : esc(a.asin);
+    return `
+      <div class="rating-row">
+        <span class="th" title="${esc(a.title || a.asin)}">${label}</span>
+        <span class="rstar ${cls} mono">${fmtRating(a.reviewRating)}</span>
+        <span class="rdrop">${a.reviewDelta == null ? "" : ratingDeltaTxt(a.reviewDelta)}</span>
+      </div>`;
+  }).join("");
+
+  // Flagged ASINs table.
+  const flagged = s.asins.filter(a => isFlagged(a, T));
+  const asinRows = flagged.map(a => `
+    <tr>
+      <td><span class="asin mono">${esc(a.asin)}</span>${a.sku ? `<br><span style="color:var(--ink-faint);font-size:11px">${esc(a.sku)}</span>` : ""}</td>
+      <td><span class="rate-pill ${rateClass(a.returnRate, T)}">${fmtPct(a.returnRate)}</span></td>
+      <td class="num mono" style="color:${(a.refundSpike != null && a.refundSpike > T.refundSpike) ? "var(--bad)" : "var(--ink-dim)"}">${esc(a.refundDelta ?? "n/a")}</td>
+      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating)})">${fmtRating(a.reviewRating)}</span></td>
+      <td class="num">${a.reviewDelta == null ? '<span class="flat">—</span>' : ratingDeltaTxt(a.reviewDelta)}</td>
+    </tr>`).join("");
+
+  document.getElementById("main").innerHTML = `
+    <div class="topbar">
+      <div class="h1">${esc(s.name)}
+        <div class="sub">${nAsins(s.asins.length)} · last synced ${relTime(SNAP.generatedAt)}</div>
+      </div>
+      <div class="health-tag ${s.health}">${HEALTH_TXT[s.health]}</div>
+    </div>
+
+    <div class="kpis">${kpis}</div>
+
+    <div class="grid">
+      ${trendCard(s.trend, T.returnRate)}
+
+      <div class="card">
+        <h3>Review ratings <span class="info-slot" data-tip="reviewRating" data-left="1"></span><span class="meta">Baserow · Amazon ratings</span></h3>
+        <div class="rating-hero">
+          <span class="rv mono" style="color:var(--${ratingColorVar(k.reviewRating)})">${fmtRating(k.reviewRating)}<small> / 5</small></span>
+          <span class="rd">${ratingDeltaTxt(k.reviewDelta)}</span>
+          <span class="rd" style="color:var(--ink-faint)">${fmtCount(k.ratingCount)} ratings</span>
+        </div>
+        <div class="rating-list">${ratingRows || `<div class="empty">No rated ASINs</div>`}</div>
+      </div>
+
+      <div class="card full">
+        <h3>Flagged ASINs <span class="info-slot" data-tip="flagged"></span><span class="meta">return rate · refund signal · rating drop</span></h3>
+        <table>
+          <thead><tr><th>ASIN / SKU</th><th>Return rate</th><th>Refund Δ</th><th>Review rating</th><th>Δ</th></tr></thead>
+          <tbody>${asinRows || `<tr><td colspan="5" class="empty">No flagged ASINs</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>
+
+    ${footnote()}`;
+  fillSlots(document.getElementById("main"));
+}
+
+// ---------- Footnote ----------
+function footnote(){
+  return `
+    <div class="footnote">
+      Live data — Baserow product/ratings master + PMA Amazon Seller Central economics (returns, refunds). Conversion (Sessions) pending. Switching stores re-scopes every panel.
+      Hover the ⓘ icons for what each metric means and why it matters.
+    </div>`;
+}
+
+// ---------- Dispatcher ----------
+function render(){
+  if (!SNAP) return;            // error already rendered
+  renderStoreList();
+  if (activeView === "all"){
+    document.getElementById("brandDot").style.background = "var(--accent)";
+    renderPortfolio();
+  } else {
+    const store = STORES.find(s => s.id === activeView);
+    if (!store){ activeView = "all"; return render(); }
+    renderStore(store);
+  }
+}
+
+// ---------- Error panel ----------
+function renderError(err){
+  const main = document.getElementById("main");
+  if (!main) return;
+  main.innerHTML = `
+    <div class="topbar">
+      <div class="h1">QA Signal
+        <div class="sub">Dashboard could not load its data</div>
+      </div>
+      <div class="health-tag bad">Error</div>
+    </div>
+    <div class="err-panel">
+      <h2>Couldn’t load the latest snapshot</h2>
+      <p>The dashboard failed to fetch <code>./data.json</code>. This usually means the snapshot hasn’t been generated yet, or the page isn’t being served over HTTP.</p>
+      <p style="margin-top:10px">Details: <code>${esc(err && err.message ? err.message : String(err))}</code></p>
+    </div>`;
+}
+
+// ---------- Boot ----------
+if (SNAP) render();
+</script>
+</body>
+</html>
