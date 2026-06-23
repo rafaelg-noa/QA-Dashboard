@@ -90,6 +90,15 @@ Store `id` = slugified store name (e.g. "body and mind" → `bodyandmind`); name
 
 **Portfolio (All Stores):** return rate = Σ`units_returned` / Σ`units_sold` across all stores; refund exposure = Σ`refunded_product_sales` (30d); flagged count = Σ flagged ASINs; avg rating = rating-count-weighted mean; store leaderboard ranked worst-health first.
 
+### 6.1 Adjustability
+
+The threshold values above are **suggested defaults**, not fixed. Two tiers:
+
+- **Classification thresholds** (return-rate breach/warn, refund-spike trigger, rating bad/drop, flag rules) are applied at **render time** from the snapshot's raw numbers, so they are **user-adjustable live in the dashboard** via a **Settings panel** (gear icon): number inputs + "reset to defaults", changes apply instantly with **no rebuild/redeploy**. Overrides are **personal — saved per browser in `localStorage`**; they never affect other users. Shared baseline defaults come from the config file and are carried in the snapshot (§7 `thresholds`); a user with no overrides sees those.
+- **Compute windows** (return-rate/conversion window days, refund baseline, 12-week trend length) live in a single version-controlled **config file** (`config/thresholds.json`) read by the generator. Changing them takes effect on the next refresh. These are rarely touched.
+
+Effective threshold = user `localStorage` override ?? snapshot default (from config). "Reset to defaults" clears the local override.
+
 ## 7. Snapshot contract — `data.json`
 
 Shaped to mirror the existing dashboard's `STORES` model so the frontend changes stay minimal. (Store/ASIN values below are **illustrative** — e.g. `"northgate"` is a placeholder, not one of the 9 real stores in §3.)
@@ -126,6 +135,7 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
 
 | Unit | Responsibility | Depends on |
 |---|---|---|
+| `config/thresholds.json` | Shared defaults: classification thresholds + compute windows | — |
 | `generator/baserow.js` | Pull + normalize table 691 → ASIN→ratings map | Baserow token |
 | `generator/pma.js` | Pull Economics + Sessions → per-ASIN/day returns/refunds/conversion + ASIN→store map | PMA token, MCP SDK |
 | `generator/build.js` | Join, compute metrics §6, assemble snapshot §7 | the two above |
@@ -141,6 +151,7 @@ Shaped to mirror the existing dashboard's `STORES` model so the frontend changes
 - Flagged-ASIN table: swap `top return reason` / `neg themes` columns → `review rating` + `Δ`.
 - Remove triage + repeat-purchase panels (Phase 2). Correct the footnote to real sources.
 - Add **"last synced / next refresh in ~Xh"** countdown + a re-fetch button. *(The button re-loads the committed `data.json` — it does not pull from upstream sources; true on-demand regenerate is a Phase-2 non-goal.)*
+- Add a **Settings panel** (gear icon) for live classification-threshold tuning per §6.1: number inputs, "reset to defaults", personal overrides in `localStorage`, instant re-render.
 
 ## 9. Hosting, auth, refresh
 
