@@ -43,6 +43,11 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`listening on ${PORT}`);
-});
+// Only listen when run directly (e.g. by Playwright's webServer), NOT when imported.
+// `node --test` scans every .js under test/ and would otherwise import this file and
+// hang on a server that never exits.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  server.listen(PORT, () => {
+    console.log(`listening on ${PORT}`);
+  });
+}
