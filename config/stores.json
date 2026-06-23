@@ -1,0 +1,71 @@
+{
+  "stores": [
+    {
+      "id": "bodyandmind",
+      "name": "body and mind",
+      "accountId": "AMDDC4NXQ03GH",
+      "brands": [
+        "OPTML",
+        "Purisure",
+        "TreeActiv"
+      ]
+    },
+    {
+      "id": "standmore",
+      "name": "StandMore",
+      "accountId": "AS8CSQPR9M3FS",
+      "brands": []
+    },
+    {
+      "id": "ohana",
+      "name": "Ohana",
+      "accountId": "A3DA69BBFHI7YK",
+      "brands": [
+        "Tejonova"
+      ]
+    },
+    {
+      "id": "wyldskyn",
+      "name": "WyldSkyn",
+      "accountId": "A387O5GH8GCHW",
+      "brands": []
+    },
+    {
+      "id": "magnificentus",
+      "name": "Magnificent US",
+      "accountId": "A3MAQKU8W5VLAP",
+      "brands": [
+        "NatriSweet"
+      ]
+    },
+    {
+      "id": "kreativfarms",
+      "name": "Kreativ Farms",
+      "accountId": "A46Y3YEAL88YG",
+      "brands": [
+        "Ayadara"
+      ]
+    },
+    {
+      "id": "veganexusus",
+      "name": "Veganexus US",
+      "accountId": "A1PHGG2N6N5I0P",
+      "brands": []
+    },
+    {
+      "id": "sirius",
+      "name": "Sirius",
+      "accountId": "A26KHELG1S2YF0",
+      "brands": []
+    },
+    {
+      "id": "mindmana",
+      "name": "Mind & Mana",
+      "accountId": "A8YCR05DHF8XC",
+      "brands": [
+        "Teaki Hut",
+        "WHYZ"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,602 @@
+[
+  {
+    "id": 1,
+    "ASIN": "B018SWE5DY",
+    "Amazon Title": "Stevia Liquid Drops, 8 Fl oz, 1823 Servings, Pure Concentrated Drops with Zero Calories & Zero Carbs, Delicious Sugar Substitute Great for Keto & Paleo Diets, by Natrisweet",
+    "Brand": [
+      {
+        "id": 2080,
+        "value": {
+          "id": 3836,
+          "value": "NatriSweet",
+          "color": "pink"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4165,
+      "value": "Active",
+      "color": "green"
+    },
+    "Amazon Review Rating": "4.1",
+    "Amazon Rating Count": "6962",
+    "Previous Review Rating": "4.1",
+    "30 Day Velocity": "100.20",
+    "Sale Price": "16.99",
+    "Inventory Health": {
+      "id": 4169,
+      "value": "ORANGE",
+      "color": "darker-yellow"
+    }
+  },
+  {
+    "id": 238,
+    "ASIN": "B01BPCAWK4",
+    "Amazon Title": "TreeActiv Cystic Acne Spot Treatment, Hormonal & Overnight Sulfur Cystic Treatment For Face, Pimples, and Blemishes for Adults, Men, and Women - 0.5oz 120+ Uses",
+    "Brand": [
+      {
+        "id": 1874,
+        "value": {
+          "id": 3832,
+          "value": "TreeActiv",
+          "color": "green"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "4.1",
+    "Amazon Rating Count": "7320",
+    "Previous Review Rating": "4.1",
+    "30 Day Velocity": "19.93",
+    "Sale Price": "18.99",
+    "Inventory Health": {
+      "id": 4172,
+      "value": "TEAL",
+      "color": "dark-cyan"
+    }
+  },
+  {
+    "id": 244,
+    "ASIN": "B08KBLNPGZ",
+    "Amazon Title": "Warrior One (0.5oz) Acne Spot Treatment with 2% Salicylic Acid, Cystic and Hormonal Acne Cream, Acido Salicilico Acne Spot Treatment for Face, acne Cream for Adults and Teens, 150+ Uses",
+    "Brand": [
+      {
+        "id": 1880,
+        "value": {
+          "id": 3834,
+          "value": "Ayadara",
+          "color": "orange"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "3.9",
+    "Amazon Rating Count": "618",
+    "Previous Review Rating": "3.9",
+    "30 Day Velocity": "0.53",
+    "Sale Price": "22.95",
+    "Inventory Health": {
+      "id": 4173,
+      "value": "BLUE",
+      "color": "darker-blue"
+    }
+  },
+  {
+    "id": 249,
+    "ASIN": "B07B1GDVT1",
+    "Amazon Title": "Purisure Alpha GPC Powder, 25 g, Pure Alpha GPC Choline Supplement for Brain and Focus, CDP Choline Supplements for Memory Performance & Concentration, No Fillers, Non-GMO, Offers 42 Servings",
+    "Brand": [
+      {
+        "id": 1885,
+        "value": {
+          "id": 3833,
+          "value": "Purisure",
+          "color": "blue"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "4.4",
+    "Amazon Rating Count": "312",
+    "Previous Review Rating": "4.4",
+    "30 Day Velocity": "0.63",
+    "Sale Price": "14.99",
+    "Inventory Health": {
+      "id": 4169,
+      "value": "ORANGE",
+      "color": "darker-yellow"
+    }
+  },
+  {
+    "id": 265,
+    "ASIN": "B00U31XAF8",
+    "Amazon Title": "TEAki Hut Instant Black Tea Powder, 4 oz, Black Tea Powdered BlackTea for Hot and Cold Beverages, Refreshing Instant Tea Powder, Unsweetened Tea, 113 Servings",
+    "Brand": [
+      {
+        "id": 1901,
+        "value": {
+          "id": 3835,
+          "value": "Teaki Hut",
+          "color": "brown"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "4.4",
+    "Amazon Rating Count": "2363",
+    "Previous Review Rating": "4.4",
+    "30 Day Velocity": "12.43",
+    "Sale Price": "15.99",
+    "Inventory Health": {
+      "id": 4173,
+      "value": "BLUE",
+      "color": "darker-blue"
+    }
+  },
+  {
+    "id": 334,
+    "ASIN": "B07VBLLFM7",
+    "Amazon Title": "OPTML Hair and Nail Vitamins for Hair Growth and Thickness, Biotin-Infused Hair Pills, Hair Vitamins for Faster Hair Growth and Healthy Nails, for Women and Men, 60 Capsules",
+    "Brand": [
+      {
+        "id": 1970,
+        "value": {
+          "id": 3838,
+          "value": "OPTML",
+          "color": "blue"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4165,
+      "value": "Active",
+      "color": "green"
+    },
+    "Amazon Review Rating": "4.4",
+    "Amazon Rating Count": "27",
+    "Previous Review Rating": "4.4",
+    "30 Day Velocity": "0.03",
+    "Sale Price": "14.90",
+    "Inventory Health": {
+      "id": 4173,
+      "value": "BLUE",
+      "color": "darker-blue"
+    }
+  },
+  {
+    "id": 340,
+    "ASIN": "B0BCWNFB7G",
+    "Amazon Title": "WHYZ Shilajit Powder, 50g(1.7 oz), Shilajit Pure Himalayan Mineral with Fulvic Acid Powder, Pure Shilajit and Fulvic Minerals Compound for Immune Support and Energy Supplement, 200 Servings",
+    "Brand": [
+      {
+        "id": 1976,
+        "value": {
+          "id": 3837,
+          "value": "WHYZ",
+          "color": "yellow"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "4.1",
+    "Amazon Rating Count": "319",
+    "Previous Review Rating": "4.1",
+    "30 Day Velocity": "0.73",
+    "Sale Price": "11.99",
+    "Inventory Health": {
+      "id": 4173,
+      "value": "BLUE",
+      "color": "darker-blue"
+    }
+  },
+  {
+    "id": 529,
+    "ASIN": "B0C8T9RG6B",
+    "Amazon Title": "Portable Standing Desk with Keyboard Tray - Ergonomic, Height Adjustable Table with Carrying Bag for Indoor and Outdoor Use. Lightweight Design to Work Anywhere, Stay Healthy, and Stand More",
+    "Brand": [
+      {
+        "id": 2166,
+        "value": {
+          "id": 3843,
+          "value": "StandMore",
+          "color": "yellow"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "4.3",
+    "Amazon Rating Count": "46",
+    "Previous Review Rating": "4.3",
+    "30 Day Velocity": "0.23",
+    "Sale Price": "586.08",
+    "Inventory Health": {
+      "id": 4173,
+      "value": "BLUE",
+      "color": "darker-blue"
+    }
+  },
+  {
+    "id": 546,
+    "ASIN": "B0CZDRCVFQ",
+    "Amazon Title": "tejonova Stevia Liquid Drops, 2 fl oz, Zero Calorie Stevia Liquid Sweetener from Pure Stevia Extract, Stevia Sweetener for Drinks, Treats, No Sugar Liquid Stevia Drops, Keto Sweetener, No Aftertaste",
+    "Brand": [
+      {
+        "id": 2183,
+        "value": {
+          "id": 3839,
+          "value": "Tejonova",
+          "color": "green"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": "3.2",
+    "Amazon Rating Count": "304",
+    "Previous Review Rating": "3.2",
+    "30 Day Velocity": "0.03",
+    "Sale Price": "8.99",
+    "Inventory Health": {
+      "id": 4173,
+      "value": "BLUE",
+      "color": "darker-blue"
+    }
+  },
+  {
+    "id": 234,
+    "ASIN": "B00H4A36JG",
+    "Amazon Title": "Diva Stuff Face Scrubbie - Scented Exfoliating Face Scrub Pads - Blackhead/Whitehead Acne Reducing Skincare Tool - Promotes New Skin Cell Turn Over - 12 Pads (Charcoal & Bamboo)",
+    "Brand": [
+      {
+        "id": 1870,
+        "value": {
+          "id": 3831,
+          "value": "DivaStuff",
+          "color": "purple"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4165,
+      "value": "Active",
+      "color": "green"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 235,
+    "ASIN": "B00ES0Z206",
+    "Amazon Title": "Diva Stuff Face Scrubbie - Exfoliating Face Scrub Pads With Turmeric - Blackhead/Whitehead Acne Reducing Skincare Tool - Promotes New Skin Cell Turn Over - 12 Pads (India’s Secret)",
+    "Brand": [
+      {
+        "id": 1871,
+        "value": {
+          "id": 3831,
+          "value": "DivaStuff",
+          "color": "purple"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4165,
+      "value": "Active",
+      "color": "green"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 236,
+    "ASIN": "B016E012MY",
+    "Amazon Title": "Diva Stuff Face Scrubbie - Exfoliating Face Scrub Pads -For Aging Skin,Promotes New Skin Cell Turn Over - 12 Pads (Strawberry Cell Renewal)",
+    "Brand": [
+      {
+        "id": 1872,
+        "value": {
+          "id": 3831,
+          "value": "DivaStuff",
+          "color": "purple"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4165,
+      "value": "Active",
+      "color": "green"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 237,
+    "ASIN": "B08B789MG6",
+    "Amazon Title": null,
+    "Brand": [
+      {
+        "id": 1873,
+        "value": {
+          "id": 3833,
+          "value": "Purisure",
+          "color": "blue"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 239,
+    "ASIN": "B08F5J12YF",
+    "Amazon Title": "TreeActiv Acne-Prone Skin Facial Sunscreen Broad Spectrum SPF 30 | Anti-Acne Face Protector with Zinc Oxide 13% & Witch Hazel | Moisturizing Reef-Safe Travel Sunscreen for Men & Women | 100+ Pumps",
+    "Brand": [
+      {
+        "id": 1875,
+        "value": {
+          "id": 3832,
+          "value": "TreeActiv",
+          "color": "green"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 240,
+    "ASIN": "B00Z3MHEK4",
+    "Amazon Title": "Diva Stuff Charcoal, Honeysuckle & Vodka | Spot Treatment for Cystic Acne | Blemish, Pimple & Hormonal Acne Treatment for Men, Women, Teens & Adults | Extra Strength, Fast Absorbing | 0.25 fl oz",
+    "Brand": [
+      {
+        "id": 1876,
+        "value": {
+          "id": 3831,
+          "value": "DivaStuff",
+          "color": "purple"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 241,
+    "ASIN": "B08B78K8S2",
+    "Amazon Title": null,
+    "Brand": [
+      {
+        "id": 1877,
+        "value": {
+          "id": 3833,
+          "value": "Purisure",
+          "color": "blue"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 242,
+    "ASIN": "B07491MKT8",
+    "Amazon Title": null,
+    "Brand": [
+      {
+        "id": 1878,
+        "value": {
+          "id": 3832,
+          "value": "TreeActiv",
+          "color": "green"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 243,
+    "ASIN": "B081NLTJXQ",
+    "Amazon Title": null,
+    "Brand": [
+      {
+        "id": 1879,
+        "value": {
+          "id": 3832,
+          "value": "TreeActiv",
+          "color": "green"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 247,
+    "ASIN": "B0B8ZKS4VP",
+    "Amazon Title": null,
+    "Brand": [
+      {
+        "id": 1883,
+        "value": {
+          "id": 3832,
+          "value": "TreeActiv",
+          "color": "green"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  },
+  {
+    "id": 248,
+    "ASIN": "B07DNKN94L",
+    "Amazon Title": null,
+    "Brand": [
+      {
+        "id": 1884,
+        "value": {
+          "id": 3833,
+          "value": "Purisure",
+          "color": "blue"
+        }
+      }
+    ],
+    "Amazon Listing Status": {
+      "id": 4166,
+      "value": "Inactive",
+      "color": "red"
+    },
+    "Amazon Review Rating": null,
+    "Amazon Rating Count": null,
+    "Previous Review Rating": null,
+    "30 Day Velocity": "0.00",
+    "Sale Price": null,
+    "Inventory Health": {
+      "id": 4167,
+      "value": "NO VELOCITY",
+      "color": "dark-gray"
+    }
+  }
+]

@@ -119,3 +119,57 @@ Ran `pma_query_custom(economics, dimensions:['account_id'], metrics:[units_sold,
 - All active stores' return rates are 0–2.8% (store-level) — under the 4%/5% thresholds; real & sane.
 - **⚠️ PMA token health:** the query returned `_token_warning: "4 account(s) have expired or revoked tokens and were excluded"`. Some Amazon→PMA connections are expiring — flag to Kadok to re-auth (`pma_get_token_health_summary`). Not a Phase-1 blocker (7 stores have data) but coverage will erode if ignored.
 - **⚠️ Data typing:** Economics metric values come back as STRINGS (`"132"`, `"53.54"`). `aggregatePma` (Task 6) MUST coerce with `Number()`/`parseFloat` before arithmetic.
+
+---
+
+## Spike A results — 2026-06-23 (ASIN→store join + Baserow rating coverage)
+
+### Join approach — CONFIRMED NON-BLOCKING
+Store assignment is the per-row Economics `account_id` (bare form, no `amazonmws-` prefix). No brand inference needed. `config/stores.json` emitted from the authoritative store table above, with `brands` derived by joining `asin-universe.json` (asin→accountId) with the Baserow `Brand` field.
+
+### Baserow field shapes (important for generator)
+Baserow table 691 returns linked/select fields as objects, not plain strings:
+- **`Brand`**: `[{"id":N,"value":{"id":N,"value":"BrandName","color":"..."}}]` — array of linked records; extract `.value.value`.
+- **`Amazon Listing Status`** / **`Inventory Health`**: `{"id":N,"value":"Active","color":"..."}` — single-select; extract `.value`.
+- **`Amazon Review Rating`**: plain string `"4.1"` or `null`.
+- **`Amazon Rating Count`**: plain string `"6962"` or `null`.
+The generator must coerce Rating/Count strings to numbers where needed.
+
+### Coverage numbers
+| Metric | Value |
+|---|---|
+| Total Baserow rows | 765 |
+| Rows with non-null `Amazon Review Rating` (overall) | 192 / 765 = **25.1%** |
+| In-scope ASINs (asin-universe) | 46 |
+| In-scope with a Baserow row | 45 / 46 = **97.8%** |
+| In-scope with non-null rating | 45 / 46 = **97.8%** |
+| In-scope ASINs missing from Baserow | 1 (`B0F6VGYSVD` — Veganexus US) |
+
+**Interpretation:** The low overall rating % (25.1%) is expected — Baserow holds ~765 products including many inactive/zero-velocity listings that have no rating data. Of the 46 actively-selling ASINs (the in-scope universe), 45 of 46 (97.8%) have a Baserow row AND a non-null rating. This is excellent. The single miss (`B0F6VGYSVD`, Veganexus US) has no Baserow row at all — generator must handle the gap gracefully (omit rating for that ASIN, not crash).
+
+### Cross-account ambiguity
+NONE. Zero ASINs appear under more than one account_id in `asin-universe.json`. The join is clean.
+
+### Per-store brand mapping
+Derived by joining asin-universe (asin→accountId) with Baserow Brand field:
+| Store | Brands |
+|---|---|
+| body and mind | OPTML, Purisure, TreeActiv |
+| StandMore | [] (no ASINs in Jun 2026 universe) |
+| Ohana | Tejonova |
+| WyldSkyn | [] (absent from Jun 2026 Economics) |
+| Magnificent US | NatriSweet |
+| Kreativ Farms | Ayadara |
+| Veganexus US | [] (1 ASIN in universe but missing from Baserow) |
+| Sirius | [] (absent from Jun 2026 Economics) |
+| Mind & Mana | Teaki Hut, WHYZ |
+
+### Deliverables written
+- `config/stores.json` — 9 stores, all slugs correct (`mindmana`, `magnificentus`, `veganexusus`, etc.), bare `accountId`, sorted `brands`.
+- `test/fixtures/baserow-691.sample.json` — 20 rows: 9 rated (spread across NatriSweet, TreeActiv, Ayadara, Purisure, Teaki Hut, OPTML, WHYZ, StandMore, Tejonova), 11 with null `Amazon Review Rating` (NO VELOCITY rows). Preserves exact Baserow field names and nested object shapes.
+
+### Concerns / notes for Kadok
+1. **`B0F6VGYSVD` (Veganexus US) has no Baserow row** — 1 of 46 in-scope ASINs will have no rating. Not a blocker, but the generator and dashboard must handle missing Baserow entries gracefully (null rating, no crash).
+2. **Baserow Brand/Status fields are linked objects**, not strings. The generator must extract `.value.value` (for Brand) and `.value` (for Status/Inventory Health) — not coerce with `.trim()`. See `extractValue` helper in `spike/baserow-pull.mjs`.
+3. **StandMore, WyldSkyn, Sirius have `brands: []`** in stores.json — acceptable since they have no ASINs in the Jun 2026 Economics window. If those stores become active later, brands will populate on the next build cycle.
+4. **Overall Baserow rating coverage is 25.1%** — this is a quality number for the dashboard spec §11.4, not a blocker. The 765-row table includes many inactive/delisted products; the active subset (46 ASINs) is nearly fully rated.
