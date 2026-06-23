@@ -577,10 +577,11 @@ function trendCard(series, breach){
 
 // ---------- KPI card ----------
 function kpiCard(c, alignLeft){
+  const tidAttr = c.testid ? ` data-testid="${c.testid}"` : "";
   return `
     <div class="kpi ${c.cls || ""}">
       <div class="lbl">${c.lbl}${tip(c.tip, alignLeft, true)}</div>
-      <div class="val mono">${c.val}</div>
+      <div class="val mono"${tidAttr}>${c.val}</div>
       <div class="delta">${c.delta || ""}</div>
       <div class="thresh">${c.thresh || ""}</div>
     </div>`;
@@ -618,7 +619,7 @@ function renderPortfolio(){
       val:`${fmtMoney(p.refundExposure)}`,
       delta:`<span class="flat">refunded product sales</span>`, thresh:`last ${SNAP.window.days} days` }, false),
     kpiCard({ lbl:"Flagged ASINs", tip:"flagged", cls: flaggedTotal > 0 ? "warn" : "good",
-      val:`${fmtNum(flaggedTotal)}`,
+      val:`${fmtNum(flaggedTotal)}`, testid:"flagged-kpi-val",
       delta:`<span class="flat">across ${p.storeCount} stores</span>`, thresh:"threshold breaches" }, true),
     kpiCard({ lbl:"Avg rating", tip:"avgRating", cls:ratingCls,
       val:`${fmtRating(p.avgRating)}<small> / 5</small>`,

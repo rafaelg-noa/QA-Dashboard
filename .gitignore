@@ -32,3 +32,4 @@ spike/*
 # Playwright output
 test-results/
 playwright-report/
+.playwright-mcp/
