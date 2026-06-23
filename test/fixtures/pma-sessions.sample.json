@@ -1,0 +1,15 @@
+{
+  "_note": [
+    "Sessions data (sales_and_traffic_by_asin) returns 0 rows via both pma_query_custom and pma_query_performance for all tested date ranges (Jun 2026, Jan 2026).",
+    "Configured dataset windows (Sessions_By_ASIN_By_Date: Jan 6-19 2026; Sessions_Data: Nov-Dec 2025) appear stale.",
+    "The pma_query_custom with sales_and_traffic_by_asin timed out on first attempt (MCP -32001), returned 0 on retry.",
+    "Conversion rate (unitSessionPercentage) is \"informational\" per spec §6 — degrade gracefully, flag to Kadok.",
+    "Recommended: Kadok should update the Sessions dataset configured window to include recent dates and re-test."
+  ],
+  "rows": [],
+  "testedRanges": [
+    "2026-06-15→2026-06-22",
+    "2026-01-06→2026-01-19"
+  ],
+  "sessError": "MCP error -32001: Request timed out"
+}
