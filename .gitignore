@@ -24,3 +24,11 @@ tmp/
 
 # Worktrees (local isolation)
 .worktrees/
+
+# Spike scratch (keep only NOTES.md)
+spike/*
+!spike/NOTES.md
+
+# Playwright output
+test-results/
+playwright-report/
