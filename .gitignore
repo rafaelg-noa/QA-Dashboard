@@ -1,0 +1,23 @@
+# Secrets — never commit
+.env
+.env.*
+*.pem
+*.key
+secrets/
+.dev.vars
+
+# Local Claude settings
+.claude/settings.local.json
+
+# Dependencies / build
+node_modules/
+dist/
+.wrangler/
+
+# OS / editor
+.DS_Store
+*.log
+
+# Scratch
+scratchpad/
+tmp/

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pma-mcp": {
+      "type": "http",
+      "url": "https://pma-mcp.web.app/"
+    }
+  }
+}
