@@ -184,6 +184,67 @@
   .empty { color: var(--ink-faint); font-size: 13px; padding: 20px; text-align: center; }
   .footnote { color: var(--ink-faint); font-size: 11px; margin-top: 22px; line-height: 1.6; }
 
+  /* ---- Sync bar (rail) ---- */
+  .sync { padding: 6px 8px 2px; font-size: 11px; color: var(--ink-dim); line-height: 1.55; }
+  .sync .sync-line { display: block; }
+  .sync .sync-line b { color: var(--ink); font-weight: 600; }
+  .sync .sync-due { color: var(--warn); }
+  .rail-actions { display: flex; gap: 6px; padding: 8px 8px 2px; }
+  .rail-btn {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
+    padding: 7px 8px; border-radius: 7px; cursor: pointer; font-size: 12px;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .rail-btn:hover { background: #232b35; color: var(--ink); border-color: var(--ink-faint); }
+  .rail-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .rail-btn.spin svg { animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- Settings drawer ---- */
+  .drawer-scrim {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200;
+    opacity: 0; visibility: hidden; transition: opacity .16s ease;
+  }
+  .drawer-scrim.open { opacity: 1; visibility: visible; }
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; width: 360px; max-width: 92vw;
+    background: var(--panel); border-left: 1px solid var(--line); z-index: 201;
+    transform: translateX(100%); transition: transform .2s ease;
+    display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(0,0,0,.45);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { display: flex; align-items: center; gap: 10px; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
+  .drawer-head h2 { font-size: 15px; letter-spacing: .2px; flex: 1; }
+  .drawer-head .x {
+    background: transparent; border: 1px solid var(--line); color: var(--ink-dim);
+    width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 16px; line-height: 1;
+  }
+  .drawer-head .x:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .drawer-body { padding: 16px 20px 22px; overflow-y: auto; flex: 1; }
+  .drawer-note { font-size: 11px; color: var(--ink-faint); line-height: 1.55; margin-bottom: 14px; }
+  .drawer-group { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-faint); margin: 16px 0 4px; }
+  .drawer-group:first-of-type { margin-top: 4px; }
+  .thr-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
+  .thr-row .thr-meta { flex: 1; min-width: 0; }
+  .thr-row .thr-lbl { font-size: 13px; color: var(--ink); }
+  .thr-row .thr-sub { font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+  .thr-row input[type=number] {
+    width: 82px; flex-shrink: 0; background: #0a0e14; border: 1px solid var(--line);
+    color: var(--ink); border-radius: 6px; padding: 7px 9px; font-size: 13px; text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .thr-row input[type=number]:focus { border-color: var(--accent); outline: none; }
+  .thr-row.overridden input[type=number] { border-color: var(--accent); }
+  .thr-row.overridden .thr-lbl::after { content: " ·"; color: var(--accent); }
+  .drawer-reset {
+    width: 100%; margin-top: 20px; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--ink); padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    transition: background .12s, border-color .12s;
+  }
+  .drawer-reset:hover { background: var(--bad-bg); border-color: rgba(248,81,73,.4); color: var(--bad); }
+  .drawer-foot { font-size: 11px; color: var(--ink-faint); margin-top: 14px; line-height: 1.5; }
+
   @media (max-width: 900px) {
     .shell { flex-direction: column; }
     .rail { width: 100%; height: auto; position: static; flex-direction: column; }
@@ -206,8 +267,26 @@
     <div class="rail-label">Stores</div>
     <div class="rail-stores" id="storeList"></div>
     <div class="rail-label" style="margin-top:auto;">Coverage</div>
-    <div style="padding:0 8px; font-size:12px; color:var(--ink-dim); line-height:1.6;">
+    <div style="padding:0 8px 4px; font-size:12px; color:var(--ink-dim); line-height:1.6;">
       <span class="mono" id="covReporting">—</span> stores reporting
+    </div>
+    <div class="sync" id="syncBar">
+      <span class="sync-line">Last synced <b id="syncLast">—</b></span>
+      <span class="sync-line" id="syncNext">Next refresh —</span>
+    </div>
+    <div class="rail-actions">
+      <button class="rail-btn" id="refetchBtn"
+        title="Reloads the latest published snapshot — does not pull from Amazon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/>
+        </svg>Re-fetch
+      </button>
+      <button class="rail-btn" id="settingsBtn" title="Adjust classification thresholds (personal)" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>Settings
+      </button>
     </div>
   </aside>
 
@@ -216,24 +295,71 @@
   </main>
 </div>
 
+<!-- Settings drawer (personal threshold overrides, localStorage) -->
+<div class="drawer-scrim" id="drawerScrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Classification settings" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>Thresholds</h2>
+    <button class="x" id="drawerClose" aria-label="Close settings">×</button>
+  </div>
+  <div class="drawer-body">
+    <p class="drawer-note">Personal — saved in this browser only. These tune how stores and ASINs are classified; one value applies across store, ASIN, and portfolio scopes. Changes apply instantly and never refetch data.</p>
+    <div id="thrInputs"></div>
+    <button class="drawer-reset" id="thrReset">Reset to defaults</button>
+    <p class="drawer-foot">Defaults ship with each snapshot. Resetting clears your local overrides and returns to the published classification.</p>
+  </div>
+</aside>
+
 <script type="module">
-import { storeHealth, asinFlags, isFlagged, rateClass, ratingClass, flaggedCount } from "./shared/classify.js";
+import { storeHealth, asinFlags, isFlagged, rateClass, ratingClass, flaggedCount, DEFAULT_THRESHOLDS } from "./shared/classify.js";
 
 // ---------- Load live snapshot ----------
-let SNAP, STORES, T;
+let SNAP, STORES;
 try {
   SNAP = await fetch("./data.json", { cache: "no-store" }).then(r => {
     if (!r.ok) throw new Error(`HTTP ${r.status} loading data.json`);
     return r.json();
   });
   STORES = SNAP.stores;
-  T = SNAP.thresholds;
 } catch (err) {
   renderError(err);
 }
 
 // activeView: "all" (portfolio) | a store id. Default = All Stores.
 let activeView = "all";
+
+// ====================================================================
+// Effective thresholds (§6.1) — personal localStorage overrides layered
+// over the snapshot's shipped defaults. Read fresh on every render so a
+// tweak in Settings takes effect instantly with no refetch.
+// ====================================================================
+const LS_KEY = "qa-thresholds";
+function readOverrides(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; }
+  catch { return {}; }
+}
+// Base defaults: snapshot's thresholds if present, else the shared module defaults.
+function baseThresholds(){ return (SNAP && SNAP.thresholds) ? SNAP.thresholds : DEFAULT_THRESHOLDS; }
+// Merge per-key overrides over the shipped defaults — only overridden keys differ.
+function effective(){ return { ...baseThresholds(), ...readOverrides() }; }
+function setOverride(key, value){
+  const o = readOverrides();
+  o[key] = value;
+  localStorage.setItem(LS_KEY, JSON.stringify(o));
+}
+function resetThresholds(){ localStorage.removeItem(LS_KEY); }
+
+// Recompute a store's health from its RAW kpis + effective thresholds,
+// preserving "nodata" (an empty store is never reclassified as good). §6.1.
+function storeHealthLive(s, t){
+  if (s.health === "nodata" || !s.kpis || s.kpis.returnRate == null) return "nodata";
+  return storeHealth({
+    returnRate: s.kpis.returnRate,
+    reviewRating: s.kpis.reviewRating,
+    reviewDelta: s.kpis.reviewDelta,
+    refundSpike: s.kpis.refundSpike
+  }, t);
+}
 
 // ---------- HTML escaping ----------
 function esc(s){
@@ -277,8 +403,8 @@ function thr(v){ return `${(v % 1 ? v.toFixed(1) : v.toFixed(0))}%`; }
 function nAsins(n){ return `${n} ASIN${n === 1 ? "" : "s"}`; }
 function nFlagged(n){ return `${n} flagged ASIN${n === 1 ? "" : "s"}`; }
 // color a rating value: returns a CSS var name; "good" maps to neutral ink so only warn/bad pop.
-function ratingColorVar(v){
-  const c = ratingClass(v, T);
+function ratingColorVar(v, t){
+  const c = ratingClass(v, t);
   return c === "good" ? "ink" : c;
 }
 
@@ -372,6 +498,7 @@ function fillSlots(root){
 function activeStoreCount(){ return STORES.filter(s => s.health !== "nodata").length; }
 
 function renderStoreList(){
+  const t = effective();
   const el = document.getElementById("storeList");
   const allActive = activeView === "all";
   const head = `
@@ -382,7 +509,7 @@ function renderStoreList(){
     </button>`;
   const rows = STORES.map(s => `
     <button class="store-btn ${s.id === activeView ? "active" : ""}" data-id="${esc(s.id)}">
-      <span class="pip ${s.health}"></span>
+      <span class="pip ${storeHealthLive(s, t)}"></span>
       <span class="nm">${esc(s.name)}</span>
       <span class="ct">${s.asins.length}</span>
     </button>`).join("");
@@ -463,34 +590,58 @@ function kpiCard(c, alignLeft){
 // ALL-STORES portfolio view
 // ====================================================================
 function renderPortfolio(){
+  const t = effective();
   const p = SNAP.portfolio;
-  const rrCls = rateClass(p.returnRate, T);
-  const ratingCls = ratingClass(p.avgRating, T);
+  const rrCls = rateClass(p.returnRate, t);
+  const ratingCls = ratingClass(p.avgRating, t);
 
+  // Recompute every store live from its raw kpis + effective thresholds (§6.1):
+  // health (nodata preserved) + flagged count. Portfolio flagged = Σ of these.
+  const liveStores = STORES.map(s => ({
+    id: s.id, name: s.name,
+    health: storeHealthLive(s, t),
+    returnRate: s.kpis ? s.kpis.returnRate : null,
+    refundSpike: s.kpis ? s.kpis.refundSpike : null,
+    avgRating: s.kpis ? s.kpis.reviewRating : null,
+    flagged: flaggedCount(s.asins, t)
+  }));
+  const flaggedTotal = liveStores.reduce((n, l) => n + l.flagged, 0);
+
+  // Portfolio return rate / refund exposure / avg rating are raw aggregates and do
+  // NOT depend on thresholds (left as shipped); only flags/counts/health do.
   const kpis = [
     kpiCard({ lbl:"Portfolio return rate", tip:"returnRate", cls:rrCls,
       val:`${fmtRating(p.returnRate)}<small>%</small>`,
       delta: deltaTxt(p.returnDelta, "pp", true),
-      thresh:`breach at ${thr(T.returnRate)}` }, false),
+      thresh:`breach at ${thr(t.returnRate)}` }, false),
     kpiCard({ lbl:"Refund exposure", tip:"refundExposure",
       val:`${fmtMoney(p.refundExposure)}`,
       delta:`<span class="flat">refunded product sales</span>`, thresh:`last ${SNAP.window.days} days` }, false),
-    kpiCard({ lbl:"Flagged ASINs", tip:"flagged", cls: p.flaggedCount > 0 ? "warn" : "good",
-      val:`${fmtNum(p.flaggedCount)}`,
+    kpiCard({ lbl:"Flagged ASINs", tip:"flagged", cls: flaggedTotal > 0 ? "warn" : "good",
+      val:`${fmtNum(flaggedTotal)}`,
       delta:`<span class="flat">across ${p.storeCount} stores</span>`, thresh:"threshold breaches" }, true),
     kpiCard({ lbl:"Avg rating", tip:"avgRating", cls:ratingCls,
       val:`${fmtRating(p.avgRating)}<small> / 5</small>`,
       delta:`<span class="flat">weighted</span>`, thresh:"units-weighted across stores" }, true)
   ].join("");
 
-  // Leaderboard (worst-health first — data is pre-sorted).
-  const lbRows = p.leaderboard.map(l => `
+  // Leaderboard: re-sort worst-health-first (bad<warn<good<nodata; tie-break
+  // returnRate desc, nulls last) — do NOT trust the shipped order/health (§6.1).
+  const RANK = { bad: 0, warn: 1, good: 2, nodata: 3 };
+  const leaderboard = liveStores.slice().sort((a, b) => {
+    const r = RANK[a.health] - RANK[b.health];
+    if (r !== 0) return r;
+    const ar = a.returnRate == null ? -Infinity : a.returnRate;
+    const br = b.returnRate == null ? -Infinity : b.returnRate;
+    return br - ar;
+  });
+  const lbRows = leaderboard.map(l => `
     <tr data-id="${esc(l.id)}">
       <td>${esc(l.name)}</td>
       <td><span class="health-pill ${l.health}">${HEALTH_TXT[l.health] || l.health}</span></td>
-      <td class="num"><span class="rate-pill ${rateClass(l.returnRate, T)}">${fmtPct(l.returnRate)}</span></td>
+      <td class="num"><span class="rate-pill ${rateClass(l.returnRate, t)}">${fmtPct(l.returnRate)}</span></td>
       <td class="num mono">${fmtSpike(l.refundSpike)}</td>
-      <td class="num"><span style="color:var(--${ratingColorVar(l.avgRating)})">${fmtRating(l.avgRating)}</span></td>
+      <td class="num"><span style="color:var(--${ratingColorVar(l.avgRating, t)})">${fmtRating(l.avgRating)}</span></td>
       <td class="num mono">${l.flagged}</td>
     </tr>`).join("");
 
@@ -498,7 +649,7 @@ function renderPortfolio(){
   const worst = [];
   for (const s of STORES){
     for (const a of s.asins){
-      if (isFlagged(a, T)) worst.push({ a, storeName: s.name });
+      if (isFlagged(a, t)) worst.push({ a, storeName: s.name });
     }
   }
   worst.sort((x, y) => (y.a.returnRate ?? -1) - (x.a.returnRate ?? -1));
@@ -506,23 +657,23 @@ function renderPortfolio(){
     <tr>
       <td><span class="asin mono">${esc(a.asin)}</span><br><span style="color:var(--ink-faint);font-size:11px">${esc(storeName)}</span></td>
       <td>${a.title ? `<span style="color:var(--ink-dim)">${esc(a.title.length > 54 ? a.title.slice(0,54) + "…" : a.title)}</span>` : `<span style="color:var(--ink-faint)">—</span>`}</td>
-      <td class="num"><span class="rate-pill ${rateClass(a.returnRate, T)}">${fmtPct(a.returnRate)}</span></td>
+      <td class="num"><span class="rate-pill ${rateClass(a.returnRate, t)}">${fmtPct(a.returnRate)}</span></td>
       <td class="num mono">${esc(a.refundDelta ?? "n/a")}</td>
-      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating)})">${fmtRating(a.reviewRating)}</span></td>
+      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating, t)})">${fmtRating(a.reviewRating)}</span></td>
     </tr>`).join("");
 
   document.getElementById("main").innerHTML = `
     <div class="topbar">
       <div class="h1">All Stores
-        <div class="sub">${activeStoreCount()} of ${STORES.length} stores reporting · ${nFlagged(p.flaggedCount)} · last synced ${relTime(SNAP.generatedAt)}</div>
+        <div class="sub">${activeStoreCount()} of ${STORES.length} stores reporting · ${nFlagged(flaggedTotal)} · last synced ${relTime(SNAP.generatedAt)}</div>
       </div>
-      <div class="health-tag ${p.returnRate >= T.returnRate ? "bad" : (p.flaggedCount > 0 ? "warn" : "good")}">Portfolio</div>
+      <div class="health-tag ${p.returnRate >= t.returnRate ? "bad" : (flaggedTotal > 0 ? "warn" : "good")}">Portfolio</div>
     </div>
 
     <div class="kpis">${kpis}</div>
 
     <div class="grid">
-      ${trendCard(p.trend, T.returnRate)}
+      ${trendCard(p.trend, t.returnRate)}
 
       <div class="card">
         <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
@@ -554,9 +705,11 @@ function renderPortfolio(){
 // ====================================================================
 function renderStore(store){
   const s = store, k = s.kpis;
-  document.getElementById("brandDot").style.background = `var(--${s.health === "nodata" ? "ink-faint" : s.health})`;
+  const t = effective();
+  const live = storeHealthLive(s, t);   // recomputed from raw kpis; preserves "nodata"
+  document.getElementById("brandDot").style.background = `var(--${live === "nodata" ? "ink-faint" : live})`;
 
-  if (s.health === "nodata"){
+  if (live === "nodata"){
     document.getElementById("main").innerHTML = `
       <div class="topbar">
         <div class="h1">${esc(s.name)}
@@ -573,33 +726,36 @@ function renderStore(store){
     return;
   }
 
-  const rrCls = rateClass(k.returnRate, T);
-  const refundCls = k.refundSpike == null ? "" : (k.refundSpike > T.refundSpike ? "bad" : k.refundSpike > T.refundSpike * 0.6 ? "warn" : "good");
-  const ratingCls = ratingClass(k.reviewRating, T);
+  const rrCls = rateClass(k.returnRate, t);
+  const refundCls = k.refundSpike == null ? "" : (k.refundSpike > t.refundSpike ? "bad" : k.refundSpike > t.refundSpike * 0.6 ? "warn" : "good");
+  const ratingCls = ratingClass(k.reviewRating, t);
 
   const kpis = [
     kpiCard({ lbl:"Return rate", tip:"returnRate", cls:rrCls,
       val:`${fmtRating(k.returnRate)}<small>%</small>`,
       delta: deltaTxt(k.returnDelta, "pp", true),
-      thresh:`breach at ${thr(T.returnRate)}` }, false),
+      thresh:`breach at ${thr(t.returnRate)}` }, false),
     kpiCard({ lbl:"Refund spike", tip:"refundSpike", cls:refundCls,
       val: fmtSpikeVal(k.refundSpike),
-      delta:`<span class="flat">vs prior window</span>`, thresh:`breach at &gt;${T.refundSpike}%` }, false),
+      delta:`<span class="flat">vs prior window</span>`, thresh:`breach at &gt;${t.refundSpike}%` }, false),
     kpiCard({ lbl:"Review rating", tip:"reviewRating", cls:ratingCls,
       val:`${fmtRating(k.reviewRating)}<small> / 5</small>`,
       delta:`${ratingDeltaTxt(k.reviewDelta)} · ${fmtCount(k.ratingCount)} ratings`,
-      thresh:`watch &lt;${T.ratingWarn} · action &lt;${T.ratingBad}` }, true),
+      thresh:`watch &lt;${t.ratingWarn} · action &lt;${t.ratingBad}` }, true),
     kpiCard({ lbl:"Conversion", tip:"conversion",
       val:`n/a`,
       delta:`<span class="flat">Sessions pending</span>`, thresh:"unit session % — unavailable" }, true)
   ].join("");
 
   // Review ratings card: store rating hero + per-ASIN rated list (worst first).
+  // Capped to the 12 lowest-rated to keep the card tidy; the rest roll into "+N more".
+  const RATING_CAP = 12;
   const ratedAsins = s.asins
     .filter(a => a.reviewRating != null && isFinite(a.reviewRating))
     .sort((x, y) => x.reviewRating - y.reviewRating);
-  const ratingRows = ratedAsins.map(a => {
-    const cls = ratingClass(a.reviewRating, T);
+  const shownRated = ratedAsins.slice(0, RATING_CAP);
+  const ratingRows = shownRated.map(a => {
+    const cls = ratingClass(a.reviewRating, t);
     const label = a.title ? esc(a.title) : esc(a.asin);
     return `
       <div class="rating-row">
@@ -608,15 +764,18 @@ function renderStore(store){
         <span class="rdrop">${a.reviewDelta == null ? "" : ratingDeltaTxt(a.reviewDelta)}</span>
       </div>`;
   }).join("");
+  const ratingMore = ratedAsins.length > RATING_CAP
+    ? `<div class="rating-row" style="color:var(--ink-faint);font-size:11.5px;justify-content:center">+${ratedAsins.length - RATING_CAP} more rated ASIN${ratedAsins.length - RATING_CAP === 1 ? "" : "s"}</div>`
+    : "";
 
   // Flagged ASINs table.
-  const flagged = s.asins.filter(a => isFlagged(a, T));
+  const flagged = s.asins.filter(a => isFlagged(a, t));
   const asinRows = flagged.map(a => `
     <tr>
       <td><span class="asin mono">${esc(a.asin)}</span>${a.sku ? `<br><span style="color:var(--ink-faint);font-size:11px">${esc(a.sku)}</span>` : ""}</td>
-      <td><span class="rate-pill ${rateClass(a.returnRate, T)}">${fmtPct(a.returnRate)}</span></td>
-      <td class="num mono" style="color:${(a.refundSpike != null && a.refundSpike > T.refundSpike) ? "var(--bad)" : "var(--ink-dim)"}">${esc(a.refundDelta ?? "n/a")}</td>
-      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating)})">${fmtRating(a.reviewRating)}</span></td>
+      <td><span class="rate-pill ${rateClass(a.returnRate, t)}">${fmtPct(a.returnRate)}</span></td>
+      <td class="num mono" style="color:${(a.refundSpike != null && a.refundSpike > t.refundSpike) ? "var(--bad)" : "var(--ink-dim)"}">${esc(a.refundDelta ?? "n/a")}</td>
+      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating, t)})">${fmtRating(a.reviewRating)}</span></td>
       <td class="num">${a.reviewDelta == null ? '<span class="flat">—</span>' : ratingDeltaTxt(a.reviewDelta)}</td>
     </tr>`).join("");
 
@@ -625,22 +784,22 @@ function renderStore(store){
       <div class="h1">${esc(s.name)}
         <div class="sub">${nAsins(s.asins.length)} · last synced ${relTime(SNAP.generatedAt)}</div>
       </div>
-      <div class="health-tag ${s.health}">${HEALTH_TXT[s.health]}</div>
+      <div class="health-tag ${live}">${HEALTH_TXT[live]}</div>
     </div>
 
     <div class="kpis">${kpis}</div>
 
     <div class="grid">
-      ${trendCard(s.trend, T.returnRate)}
+      ${trendCard(s.trend, t.returnRate)}
 
       <div class="card">
         <h3>Review ratings <span class="info-slot" data-tip="reviewRating" data-left="1"></span><span class="meta">Baserow · Amazon ratings</span></h3>
         <div class="rating-hero">
-          <span class="rv mono" style="color:var(--${ratingColorVar(k.reviewRating)})">${fmtRating(k.reviewRating)}<small> / 5</small></span>
+          <span class="rv mono" style="color:var(--${ratingColorVar(k.reviewRating, t)})">${fmtRating(k.reviewRating)}<small> / 5</small></span>
           <span class="rd">${ratingDeltaTxt(k.reviewDelta)}</span>
           <span class="rd" style="color:var(--ink-faint)">${fmtCount(k.ratingCount)} ratings</span>
         </div>
-        <div class="rating-list">${ratingRows || `<div class="empty">No rated ASINs</div>`}</div>
+        <div class="rating-list">${ratingRows || `<div class="empty">No rated ASINs</div>`}${ratingMore}</div>
       </div>
 
       <div class="card full">
@@ -697,7 +856,126 @@ function renderError(err){
     </div>`;
 }
 
+// ====================================================================
+// Settings drawer (live threshold overrides, §6.1)
+// ====================================================================
+// label + helper text + numeric step for each adjustable threshold.
+const THRESHOLD_META = [
+  { key:"returnRate",     lbl:"Return rate — breach",  sub:"Store/ASIN flags red at or above this %",      step:0.1 },
+  { key:"returnRateWarn", lbl:"Return rate — warn",    sub:"Amber band starts at this %",                   step:0.1 },
+  { key:"refundSpike",    lbl:"Refund spike",          sub:"Flags when refund change exceeds this %",        step:1 },
+  { key:"ratingBad",      lbl:"Rating — action",       sub:"Rating below this is red",                       step:0.1 },
+  { key:"ratingWarn",     lbl:"Rating — watch",        sub:"Rating below this is amber",                     step:0.1 },
+  { key:"ratingDrop",     lbl:"Rating drop",           sub:"Flags when rating falls by this much (negative)", step:0.1 }
+];
+
+function renderThresholdInputs(){
+  const wrap = document.getElementById("thrInputs");
+  const t = effective();
+  const overrides = readOverrides();
+  wrap.innerHTML = THRESHOLD_META.map(m => `
+    <div class="thr-row ${m.key in overrides ? "overridden" : ""}">
+      <div class="thr-meta">
+        <div class="thr-lbl">${m.lbl}</div>
+        <div class="thr-sub">${m.sub}</div>
+      </div>
+      <input type="number" step="${m.step}" inputmode="decimal"
+        data-key="${m.key}" value="${t[m.key]}" aria-label="${m.lbl}">
+    </div>`).join("");
+  wrap.querySelectorAll("input[data-key]").forEach(inp => {
+    inp.oninput = () => {
+      const v = parseFloat(inp.value);
+      if (!isFinite(v)) return;          // ignore empty/partial entry; re-render on valid value
+      setOverride(inp.dataset.key, v);
+      render();                          // instant re-classify, NO refetch
+      // reflect override-highlight on this row without losing focus/caret
+      inp.closest(".thr-row").classList.add("overridden");
+    };
+  });
+}
+
+function openDrawer(){
+  renderThresholdInputs();
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "false");
+  document.getElementById("drawerScrim").classList.add("open");
+}
+function closeDrawer(){
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "true");
+  document.getElementById("drawerScrim").classList.remove("open");
+}
+
+// ====================================================================
+// Refresh affordances (§8): last-synced, live next-refresh countdown,
+// and a re-fetch button that reloads the published snapshot (not source).
+// ====================================================================
+function fmtDuration(ms){
+  const totalMin = Math.round(ms / 60000);
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+function updateSyncBar(){
+  if (!SNAP) return;
+  const last = document.getElementById("syncLast");
+  const next = document.getElementById("syncNext");
+  if (!last || !next) return;
+  last.textContent = relTime(SNAP.generatedAt);
+  const gen = new Date(SNAP.generatedAt).getTime();
+  const hrs = Number(SNAP.refreshIntervalHours) || 0;
+  if (!isFinite(gen) || hrs <= 0){ next.textContent = ""; return; }
+  const due = gen + hrs * 3600 * 1000;
+  const remain = due - Date.now();
+  if (remain <= 0){
+    next.innerHTML = `Next refresh <span class="sync-due">due now</span>`;
+  } else {
+    next.textContent = `Next refresh ~${fmtDuration(remain)}`;
+  }
+}
+
+let refetching = false;
+async function refetch(){
+  if (refetching || !SNAP) return;
+  refetching = true;
+  const btn = document.getElementById("refetchBtn");
+  btn.classList.add("spin"); btn.disabled = true;
+  try {
+    const fresh = await fetch("./data.json", { cache: "no-store" }).then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status} loading data.json`);
+      return r.json();
+    });
+    SNAP = fresh;
+    STORES = SNAP.stores;
+    if (!STORES.some(s => s.id === activeView)) activeView = "all";
+    render();
+    updateSyncBar();                     // reset countdown to the new generatedAt
+  } catch (err) {
+    renderError(err);
+  } finally {
+    btn.classList.remove("spin"); btn.disabled = false;
+    refetching = false;
+  }
+}
+
+// ---------- Wire chrome (runs once, even on the error path) ----------
+function wireChrome(){
+  document.getElementById("settingsBtn").onclick = openDrawer;
+  document.getElementById("drawerClose").onclick = closeDrawer;
+  document.getElementById("drawerScrim").onclick = closeDrawer;
+  document.getElementById("refetchBtn").onclick = refetch;
+  document.getElementById("thrReset").onclick = () => {
+    resetThresholds();
+    renderThresholdInputs();             // clear override highlights + reset values
+    render();                            // back to shipped classification
+  };
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+  updateSyncBar();
+  setInterval(updateSyncBar, 60000);     // live countdown, every 60s
+}
+
 // ---------- Boot ----------
+wireChrome();
 if (SNAP) render();
 </script>
 </body>
