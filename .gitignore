@@ -21,3 +21,6 @@ dist/
 # Scratch
 scratchpad/
 tmp/
+
+# Worktrees (local isolation)
+.worktrees/
