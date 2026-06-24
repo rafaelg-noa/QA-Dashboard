@@ -4,10 +4,9 @@ name: refresh-data
 # Cloudflare Pages watches main and redeploys when data.json changes.
 on:
   schedule:
-    - cron: "0 */6 * * *" # every 6h (UTC). NOTE: each run does a ~12-15 min PMA pull;
-                          # 4 runs/day ≈ ~1800 of the 2000 free private-repo Actions min/month.
-                          # Dial to "0 */12 * * *" (and set refreshIntervalHours to 12 in
-                          # generator/index.js) if you want more headroom.
+    - cron: "0 */12 * * *" # every 12h (UTC). Each run does a ~28 min PMA pull;
+                           # 2 runs/day ≈ ~1700 of the 2000 free private-repo Actions min/month.
+                           # (refreshIntervalHours in generator/index.js is kept at 12 to match.)
   workflow_dispatch: {} # manual "Run workflow" button
 
 permissions:

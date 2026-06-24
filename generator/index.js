@@ -69,7 +69,7 @@ export async function main() {
       thresholds: cfg.classification,
       windows: cfg.windows,
       generatedAt,
-      refreshIntervalHours: 6,
+      refreshIntervalHours: 12,
     });
 
     // ── 8. Validate ──────────────────────────────────────────────────────────
