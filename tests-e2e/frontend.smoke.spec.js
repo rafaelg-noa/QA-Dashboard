@@ -56,6 +56,10 @@ test.describe("QA Dashboard frontend smoke", () => {
     // The "Flagged ASINs" KPI label must be visible
     await expect(page.getByText("Flagged ASINs").first()).toBeVisible();
 
+    // Leaderboard (store grouping) lives in the Rankings tab — navigate there.
+    await page.locator('[data-testid="tab-rank"]').click();
+    await page.locator('[data-testid="groupby-store"]').click();
+
     // Leaderboard table must have 9 data rows
     const lbRows = page.locator("#lbBody tr");
     await expect(lbRows).toHaveCount(9);
@@ -105,10 +109,10 @@ test.describe("QA Dashboard frontend smoke", () => {
     // Fresh navigate — this triggers the one legitimate fetch of data.json.
     await page.goto("/");
 
-    // Wait for the page to fully render (leaderboard populated = fetch done + render).
+    // Wait for the page to fully render (callouts populated = fetch done + render).
     const storeList = page.locator("#storeList");
     await storeList.waitFor({ state: "visible" });
-    await page.locator("#lbBody tr").first().waitFor({ state: "visible" });
+    await page.locator('[data-testid="callout"]').first().waitFor({ state: "visible" });
 
     // Capture baseline hit count (should be exactly 1 from initial load).
     const hitsAfterLoad = dataJsonHits;
@@ -164,7 +168,7 @@ test.describe("QA Dashboard frontend smoke", () => {
   test("nodata store (Sirius) stays No data under threshold override", async ({ page }) => {
     const storeList = page.locator("#storeList");
     await storeList.waitFor({ state: "visible" });
-    await page.locator("#lbBody tr").first().waitFor({ state: "visible" });
+    await page.locator('[data-testid="callout"]').first().waitFor({ state: "visible" });
 
     // Open settings and lower returnRate to 0 — the most aggressive possible override.
     await page.click("#settingsBtn");
@@ -176,17 +180,19 @@ test.describe("QA Dashboard frontend smoke", () => {
     await returnRateInput.dispatchEvent("input");
     await page.waitForTimeout(100);
 
-    // Sirius is a known nodata store. Its leaderboard row must still show "No data".
+    // Sirius is a known nodata store. Navigate to Rankings > Store to check its leaderboard row.
+    await page.click("#drawerClose");
+    await expect(drawer).not.toHaveClass(/open/);
+    await page.locator('[data-testid="tab-rank"]').click();
+    await page.locator('[data-testid="groupby-store"]').click();
+
     // Find the leaderboard row that contains "Sirius" and check its health pill.
     const siriusRow = page.locator("#lbBody tr", { hasText: "Sirius" });
     await expect(siriusRow).toBeVisible();
     const healthPill = siriusRow.locator(".health-pill");
     await expect(healthPill).toHaveText("No data");
 
-    // Close the drawer and click the Sirius store button in the rail.
-    await page.click("#drawerClose");
-    await expect(drawer).not.toHaveClass(/open/);
-
+    // Click the Sirius store button in the rail.
     const siriusBtn = storeList.locator("button", { hasText: "Sirius" });
     await siriusBtn.click();
 
@@ -240,4 +246,16 @@ test("brands tab shows one health-colored card per brand", async ({ page }) => {
   // count matches portfolio.brands length from the served data.json
   const data = await page.evaluate(() => fetch("/data.json").then(r => r.json()));
   await expect(cards).toHaveCount(data.portfolio.brands.length);
+});
+
+// --------------------------------------------------------------------------
+// Task 10: Rankings table + Brand|Store toggle
+// --------------------------------------------------------------------------
+test("rankings table renders brand rows; toggle switches to store grouping", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-testid="tab-rank"]').click();
+  await expect(page.locator('[data-testid="rank-row"]').first()).toBeVisible();
+  await page.locator('[data-testid="groupby-store"]').click();
+  const data = await page.evaluate(() => fetch("/data.json").then(r => r.json()));
+  await expect(page.locator('[data-testid="rank-row"]')).toHaveCount(data.portfolio.leaderboard.length);
 });

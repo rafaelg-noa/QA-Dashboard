@@ -376,6 +376,28 @@
     .brand-grid { grid-template-columns: 1fr 1fr; }
   }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- Rankings panel group-by toggle ---- */
+  .groupby-bar {
+    display: flex; gap: 4px; margin-bottom: 14px; align-items: center;
+  }
+  .groupby-bar .gb-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--ink-faint); margin-right: 6px;
+  }
+  .groupby-btn {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
+    padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .groupby-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .groupby-btn.active {
+    background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+  }
+
+  /* ---- Rankings table sparkline ---- */
+  .spark { display: inline-flex; gap: 1px; align-items: flex-end; height: 14px; vertical-align: middle; }
+  .spark span { width: 3px; border-radius: 1px; background: var(--accent); opacity: .7; }
 </style>
 </head>
 <body>
@@ -745,6 +767,9 @@ function verdictHeader(p, t){
 // activeTab persists across re-renders so threshold changes don't reset the tab.
 let activeTab = "briefing";
 
+// activeGroupBy persists across re-renders so threshold changes don't reset the Rankings toggle.
+let activeGroupBy = "brand"; // "brand" | "store"
+
 function renderTabBar(){
   const tabs = [
     { id: "briefing", label: "Briefing" },
@@ -829,7 +854,7 @@ function calloutHtml(b, t){
     </div>`;
 }
 
-function briefingPanel(p, t, lbRows){
+function briefingPanel(p, t){
   // Filter out nodata brands; preserve generator order (worst-first).
   const calloutBrands = (p.brands || []).filter(b => b.health !== "nodata");
   const calloutItems = calloutBrands.map(b => calloutHtml(b, t)).join("");
@@ -846,14 +871,6 @@ function briefingPanel(p, t, lbRows){
       </div>
 
       ${trendCard(p.trend, t.returnRate)}
-
-      <div class="card">
-        <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
-        <table>
-          <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
-          <tbody id="lbBody">${lbRows}</tbody>
-        </table>
-      </div>
     </div>
     ${footnote()}`;
 }
@@ -927,6 +944,89 @@ function brandsPanel(p, t){
 }
 
 // ====================================================================
+// Rankings panel (Task 10) — sortable detail table, brand|store toggle
+// ====================================================================
+
+// Render a tiny inline sparkline from a 12-week trend array.
+// Normalises to [0..1] height across the range; missing values are 0px bars.
+function sparkHtml(trend){
+  if (!trend || !trend.length) return "";
+  const present = trend.filter(v => v != null && isFinite(v));
+  if (!present.length) return '<span class="spark"></span>';
+  const max = Math.max(...present);
+  const bars = trend.map(v => {
+    const h = (v != null && isFinite(v) && max > 0) ? Math.max(2, Math.round((v / max) * 14)) : 2;
+    const opacity = (v != null && isFinite(v)) ? 1 : 0.25;
+    return `<span style="height:${h}px;opacity:${opacity}"></span>`;
+  }).join("");
+  return `<span class="spark" title="12-wk return rate trend">${bars}</span>`;
+}
+
+function rankingsPanel(p, t, lbRows){
+  const brands = p.brands || [];
+
+  // Brand grouping view: one row per portfolio.brands[] entry (worst-first from generator).
+  const brandRows = brands.map(b => {
+    const health = b.health || "nodata";
+    const pillLabel = health === "good" ? "OK"
+      : health === "warn" ? "Watch"
+      : health === "bad"  ? "Alert"
+      : "No data";
+    // Rating delta display
+    let ratingDeltaHtml = '<span class="flat">—</span>';
+    if (b.ratingDelta != null && isFinite(b.ratingDelta) && Math.abs(b.ratingDelta) >= 0.05){
+      const up = b.ratingDelta > 0;
+      const cls = up ? "down-good" : "up-bad";
+      const arrow = up ? "▲" : "▼";
+      ratingDeltaHtml = `<span class="${cls}">${arrow}${Math.abs(b.ratingDelta).toFixed(2)}</span>`;
+    }
+    // Flagged pill
+    const flaggedHtml = (b.flagged > 0)
+      ? `<span class="rate-pill ${b.flagged >= 3 ? "bad" : "warn"}">${b.flagged}</span>`
+      : `<span style="color:var(--ink-faint)">0</span>`;
+    return `
+      <tr data-testid="rank-row" data-id="${esc(b.id)}" data-kind="brand" style="cursor:pointer">
+        <td>${esc(b.name)}</td>
+        <td><span class="health-pill ${health}">${pillLabel}</span></td>
+        <td class="num mono">${fmtRating(b.rating) !== "n/a" ? fmtRating(b.rating) + "<small> / 5</small>" : "n/a"}</td>
+        <td class="num">${ratingDeltaHtml}</td>
+        <td class="num"><span class="rate-pill ${rateClass(b.returnRate, t)}">${fmtPct(b.returnRate)}</span></td>
+        <td class="num mono" style="color:var(--ink-dim)">${fmtSpike(b.refundSpike)}</td>
+        <td class="num">${flaggedHtml}</td>
+        <td>${sparkHtml(b.trend)}</td>
+      </tr>`;
+  }).join("");
+
+  const brandTable = `
+    <table>
+      <thead><tr>
+        <th>Brand</th><th>Health</th><th>Rating</th><th>Δ</th>
+        <th>Return rate</th><th>Refund Δ</th><th>Flagged</th><th>12-wk trend</th>
+      </tr></thead>
+      <tbody>${brandRows || `<tr><td colspan="8" class="empty">No brand data</td></tr>`}</tbody>
+    </table>`;
+
+  // Store grouping view: leaderboard rows (pre-sorted worst-first), reuses #lbBody.
+  const storeTable = `
+    <table>
+      <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
+      <tbody id="lbBody">${lbRows}</tbody>
+    </table>`;
+
+  const isBrand = activeGroupBy === "brand";
+  return `
+    <div class="groupby-bar">
+      <span class="gb-label">Group by</span>
+      <button class="groupby-btn${isBrand ? " active" : ""}" data-testid="groupby-brand">Brand</button>
+      <button class="groupby-btn${!isBrand ? " active" : ""}" data-testid="groupby-store">Store</button>
+    </div>
+    <div class="card" style="margin-top:0;padding-top:14px;overflow-x:auto;">
+      ${isBrand ? brandTable : storeTable}
+    </div>
+    ${footnote()}`;
+}
+
+// ====================================================================
 // ALL-STORES portfolio view
 // ====================================================================
 function renderPortfolio(){
@@ -977,7 +1077,7 @@ function renderPortfolio(){
     return br - ar;
   });
   const lbRows = leaderboard.map(l => `
-    <tr data-id="${esc(l.id)}">
+    <tr data-testid="rank-row" data-id="${esc(l.id)}" data-kind="store" style="cursor:pointer">
       <td>${esc(l.name)}</td>
       <td><span class="health-pill ${l.health}">${HEALTH_TXT[l.health] || l.health}</span></td>
       <td class="num"><span class="rate-pill ${rateClass(l.returnRate, t)}">${fmtPct(l.returnRate)}</span></td>
@@ -1001,7 +1101,7 @@ function renderPortfolio(){
     ${renderTabBar()}
 
     <div class="tab-panel${activeTab === "briefing" ? " active" : ""}" data-panel="briefing" data-testid="panel-briefing">
-      ${briefingPanel(p, t, lbRows)}
+      ${briefingPanel(p, t)}
     </div>
 
     <div class="tab-panel${activeTab === "brands" ? " active" : ""}" data-panel="brands" data-testid="panel-brands">
@@ -1009,12 +1109,19 @@ function renderPortfolio(){
     </div>
 
     <div class="tab-panel${activeTab === "rank" ? " active" : ""}" data-panel="rank" data-testid="panel-rank">
-      <div class="empty" style="padding:40px 0;font-size:14px">Rankings panel — coming in Task 10</div>
+      ${rankingsPanel(p, t, lbRows)}
     </div>`;
 
-  // Clicking a leaderboard row selects that store.
+  // Clicking a leaderboard row (store grouping) selects that store.
   document.querySelectorAll("#lbBody tr").forEach(tr =>
     tr.onclick = () => { activeView = tr.dataset.id; render(); });
+  // Group-by toggle buttons in Rankings panel.
+  document.querySelectorAll(".groupby-btn[data-testid]").forEach(btn => {
+    btn.onclick = () => {
+      activeGroupBy = btn.dataset.testid === "groupby-brand" ? "brand" : "store";
+      render();
+    };
+  });
   wireTabBar();
   fillSlots(document.getElementById("main"));
 }
