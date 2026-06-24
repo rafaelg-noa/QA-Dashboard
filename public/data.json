@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-23T23:22:12.917Z",
-  "refreshIntervalHours": 6,
+  "generatedAt": "2026-06-24T18:21:25.090Z",
+  "refreshIntervalHours": 12,
   "window": {
     "days": 30
   },
@@ -62,7 +62,7 @@
         "name": "Ohana",
         "health": "good",
         "returnRate": 2.62891809908999,
-        "refundSpike": -14.515556988553922,
+        "refundSpike": -14.515556988553938,
         "avgRating": 4.068718123087384,
         "flagged": 3
       },
@@ -815,20 +815,6 @@
           ]
         },
         {
-          "asin": "B0F1MXN68M",
-          "sku": null,
-          "title": "Beef Tallow Face Cream Body Moisturizer, All Natural Grass Fed Whipped Beef tallow For Skin, Deeply Hydrating & Nourishing Balm for Eczema Cracked Dry Itchy Irritated Skin Repair Skincare 4 fl oz",
-          "brand": "TreeActiv",
-          "returnRate": 0,
-          "refundSpike": null,
-          "refundDelta": "n/a",
-          "reviewRating": 4.8,
-          "reviewDelta": 0,
-          "ratingCount": 58,
-          "conversion": null,
-          "flags": []
-        },
-        {
           "asin": "B07DNJ69FR",
           "sku": null,
           "title": "Purisure Caffeine Theanine Capsules, Caffeine Pills 100mg L Theanine for Pre Workout, Energy, and Clarity, Energy Pills for Fatigue, Nootropic Supplement, 120 Day Supply",
@@ -1030,6 +1016,20 @@
             "return",
             "refund"
           ]
+        },
+        {
+          "asin": "B0F1MXN68M",
+          "sku": null,
+          "title": "Beef Tallow Face Cream Body Moisturizer, All Natural Grass Fed Whipped Beef tallow For Skin, Deeply Hydrating & Nourishing Balm for Eczema Cracked Dry Itchy Irritated Skin Repair Skincare 4 fl oz",
+          "brand": "TreeActiv",
+          "returnRate": 0,
+          "refundSpike": null,
+          "refundDelta": "n/a",
+          "reviewRating": 4.8,
+          "reviewDelta": 0,
+          "ratingCount": 58,
+          "conversion": null,
+          "flags": []
         },
         {
           "asin": "B0DTP86H79",
@@ -1622,7 +1622,7 @@
       "kpis": {
         "returnRate": 2.62891809908999,
         "returnDelta": -0.26187419213056673,
-        "refundSpike": -14.515556988553922,
+        "refundSpike": -14.515556988553938,
         "reviewRating": 4.068718123087384,
         "reviewDelta": 0,
         "ratingCount": 2941,
@@ -1672,6 +1672,20 @@
           "flags": []
         },
         {
+          "asin": "B0DBV9BBP2",
+          "sku": null,
+          "title": "tejonova Monk Fruit Sweetener, 5 oz, Monk Fruit Extract Powder, Monkfruit Sweetener Pure Flavor, Monk Fruit Sweetener No Erythritol, Ideal Monkfruit Sweetner and Keto Sugar Substitute, 460 Servings",
+          "brand": "Tejonova",
+          "returnRate": 2.3980815347721824,
+          "refundSpike": 12.719731384554619,
+          "refundDelta": "+13%",
+          "reviewRating": 4.3,
+          "reviewDelta": 0,
+          "ratingCount": 425,
+          "conversion": null,
+          "flags": []
+        },
+        {
           "asin": "B0CZDJ4K8N",
           "sku": null,
           "title": "tejonova Stevia Liquid Drops, 8oz, Zero Calorie Stevia Liquid Sweetener from Pure Stevia Extract, Stevia Sweetener for Drinks, Treats, No Sugar Liquid Stevia Drops, Keto Sweetener, No Aftertaste",
@@ -1686,20 +1700,6 @@
           "flags": [
             "return"
           ]
-        },
-        {
-          "asin": "B0DBV9BBP2",
-          "sku": null,
-          "title": "tejonova Monk Fruit Sweetener, 5 oz, Monk Fruit Extract Powder, Monkfruit Sweetener Pure Flavor, Monk Fruit Sweetener No Erythritol, Ideal Monkfruit Sweetner and Keto Sugar Substitute, 460 Servings",
-          "brand": "Tejonova",
-          "returnRate": 2.3980815347721824,
-          "refundSpike": 12.719731384554619,
-          "refundDelta": "+13%",
-          "reviewRating": 4.3,
-          "reviewDelta": 0,
-          "ratingCount": 425,
-          "conversion": null,
-          "flags": []
         },
         {
           "asin": "B0CZ9DD9GG",
@@ -3429,20 +3429,6 @@
           "flags": []
         },
         {
-          "asin": "B0FXG6NHYT",
-          "sku": null,
-          "title": null,
-          "brand": "WHYZ",
-          "returnRate": 0,
-          "refundSpike": -100,
-          "refundDelta": "-100%",
-          "reviewRating": 4.5,
-          "reviewDelta": 0,
-          "ratingCount": 29,
-          "conversion": null,
-          "flags": []
-        },
-        {
           "asin": "B0FR9LVXH4",
           "sku": null,
           "title": null,
@@ -3453,6 +3439,20 @@
           "reviewRating": 4.5,
           "reviewDelta": 0,
           "ratingCount": 26,
+          "conversion": null,
+          "flags": []
+        },
+        {
+          "asin": "B0FXG6NHYT",
+          "sku": null,
+          "title": null,
+          "brand": "WHYZ",
+          "returnRate": 0,
+          "refundSpike": -100,
+          "refundDelta": "-100%",
+          "reviewRating": 4.5,
+          "reviewDelta": 0,
+          "ratingCount": 29,
           "conversion": null,
           "flags": []
         },
@@ -3543,20 +3543,6 @@
           "flags": []
         },
         {
-          "asin": "B0FZVV64MN",
-          "sku": null,
-          "title": null,
-          "brand": "WHYZ",
-          "returnRate": 0,
-          "refundSpike": null,
-          "refundDelta": "n/a",
-          "reviewRating": 4.3,
-          "reviewDelta": 0,
-          "ratingCount": 145,
-          "conversion": null,
-          "flags": []
-        },
-        {
           "asin": "B0FR8XH5KB",
           "sku": null,
           "title": null,
@@ -3634,20 +3620,6 @@
           ]
         },
         {
-          "asin": "B0G7H9P9DP",
-          "sku": null,
-          "title": null,
-          "brand": "WHYZ",
-          "returnRate": null,
-          "refundSpike": null,
-          "refundDelta": "n/a",
-          "reviewRating": 4.1,
-          "reviewDelta": 0,
-          "ratingCount": 18,
-          "conversion": null,
-          "flags": []
-        },
-        {
           "asin": "B06XW84324",
           "sku": null,
           "title": "Instant Pu-erh Black Tea Powder 4 oz, Low-Carb, Low-Calorie Black Tea for Hot & Cold Beverages, Refreshing Instant Powder for Lattes, Smoothies, Cocktails & Baked Goods",
@@ -3658,6 +3630,20 @@
           "reviewRating": 4.3,
           "reviewDelta": 0,
           "ratingCount": 322,
+          "conversion": null,
+          "flags": []
+        },
+        {
+          "asin": "B0G7H9P9DP",
+          "sku": null,
+          "title": null,
+          "brand": "WHYZ",
+          "returnRate": null,
+          "refundSpike": null,
+          "refundDelta": "n/a",
+          "reviewRating": 4.1,
+          "reviewDelta": 0,
+          "ratingCount": 18,
           "conversion": null,
           "flags": []
         },
@@ -3787,6 +3773,20 @@
           "reviewRating": 4.4,
           "reviewDelta": 0,
           "ratingCount": 409,
+          "conversion": null,
+          "flags": []
+        },
+        {
+          "asin": "B0FZVV64MN",
+          "sku": null,
+          "title": null,
+          "brand": "WHYZ",
+          "returnRate": 0,
+          "refundSpike": null,
+          "refundDelta": "n/a",
+          "reviewRating": 4.3,
+          "reviewDelta": 0,
+          "ratingCount": 145,
           "conversion": null,
           "flags": []
         },
