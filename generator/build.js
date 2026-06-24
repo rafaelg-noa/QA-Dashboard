@@ -20,7 +20,7 @@
  * implementation shared with the browser) — do NOT reimplement it here.
  */
 
-import { storeHealth, asinFlags, flaggedCount } from "../public/shared/classify.js";
+import { storeHealth, asinFlags, flaggedCount, portfolioVerdict } from "../public/shared/classify.js";
 
 const WEEKS = 12;
 
@@ -307,6 +307,7 @@ function rollupPortfolio(pma, ratings, storeResults, storeCount, thresholds) {
   const refundExposure = round(refLast, 2);
   const flagged = storeResults.reduce((n, r) => n + r._flagged, 0);
   const { mean: avgRating } = weightedMean(ratingRows, "reviewRating");
+  const { mean: ratingDelta } = weightedMean(ratingRows, "reviewDelta");
   const trend = weekly.map((w) => (w.sold === 0 ? null : (w.ret / w.sold) * 100));
 
   // Leaderboard: one entry per store, worst-health-first, tie-break returnRate desc (nulls last).
@@ -336,6 +337,7 @@ function rollupPortfolio(pma, ratings, storeResults, storeCount, thresholds) {
     refundExposure,
     flaggedCount: flagged,
     avgRating,
+    ratingDelta: round(ratingDelta, 2),
     storeCount,
     trend,
     conv: Array(WEEKS).fill(null),
@@ -378,6 +380,14 @@ export function buildSnapshot({
     thresholds
   );
   portfolio.brands = rollupBrands(pma, ratings, thresholds);
+  const decliningBrands = portfolio.brands.filter(
+    (b) => b.ratingDelta != null && b.ratingDelta <= thresholds.ratingDrop
+  ).length;
+  portfolio.verdict = {
+    state: portfolioVerdict({ ratingDelta: portfolio.ratingDelta, decliningBrands }, thresholds),
+    ratingDelta: portfolio.ratingDelta,
+    decliningBrands,
+  };
 
   return {
     generatedAt,

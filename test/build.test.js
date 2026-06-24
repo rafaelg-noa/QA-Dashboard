@@ -21,6 +21,7 @@ import { readFileSync } from "node:fs";
 import { normalizeBaserow } from "../generator/baserow.js";
 import { aggregatePma } from "../generator/pma.js";
 import { buildSnapshot } from "../generator/build.js";
+import { portfolioVerdict } from "../public/shared/classify.js";
 
 const econ = JSON.parse(readFileSync(new URL("./fixtures/pma-economics.sample.json", import.meta.url)));
 const brows = JSON.parse(readFileSync(new URL("./fixtures/baserow-691.sample.json", import.meta.url)));
@@ -410,4 +411,28 @@ test("portfolio.brands: each entry has the §5.3 shape", () => {
     }
     assert.equal(b.trend.length, 12);
   }
+});
+
+test("portfolio.ratingDelta: ratingCount-weighted reviewDelta over all rated ASINs", () => {
+  const snap = build();
+  let num = 0, den = 0;
+  for (const a of Object.values(pma)) {
+    const r = ratings[a.asin];
+    if (!r || r.reviewDelta == null || r.ratingCount == null) continue;
+    num += r.reviewDelta * r.ratingCount; den += r.ratingCount;
+  }
+  const expected = den === 0 ? null : num / den;
+  if (expected === null) assert.equal(snap.portfolio.ratingDelta, null);
+  else close(snap.portfolio.ratingDelta, expected, 1e-6, "portfolio.ratingDelta");
+});
+
+test("portfolio.verdict: shape + matches classify over computed inputs", () => {
+  const snap = build();
+  const v = snap.portfolio.verdict;
+  assert.ok(["improving", "stable", "slipping"].includes(v.state));
+  const decliners = snap.portfolio.brands.filter(
+    (b) => b.ratingDelta != null && b.ratingDelta <= cfg.classification.ratingDrop
+  ).length;
+  assert.equal(v.decliningBrands, decliners);
+  assert.equal(v.state, portfolioVerdict({ ratingDelta: snap.portfolio.ratingDelta, decliningBrands: decliners }, cfg.classification));
 });
