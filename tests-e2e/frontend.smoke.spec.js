@@ -56,6 +56,10 @@ test.describe("QA Dashboard frontend smoke", () => {
     // The "Flagged ASINs" KPI label must be visible
     await expect(page.getByText("Flagged ASINs").first()).toBeVisible();
 
+    // Leaderboard (store grouping) lives in the Rankings tab — navigate there.
+    await page.locator('[data-testid="tab-rank"]').click();
+    await page.locator('[data-testid="groupby-store"]').click();
+
     // Leaderboard table must have 9 data rows
     const lbRows = page.locator("#lbBody tr");
     await expect(lbRows).toHaveCount(9);
@@ -105,10 +109,10 @@ test.describe("QA Dashboard frontend smoke", () => {
     // Fresh navigate — this triggers the one legitimate fetch of data.json.
     await page.goto("/");
 
-    // Wait for the page to fully render (leaderboard populated = fetch done + render).
+    // Wait for the page to fully render (callouts populated = fetch done + render).
     const storeList = page.locator("#storeList");
     await storeList.waitFor({ state: "visible" });
-    await page.locator("#lbBody tr").first().waitFor({ state: "visible" });
+    await page.locator('[data-testid="callout"]').first().waitFor({ state: "visible" });
 
     // Capture baseline hit count (should be exactly 1 from initial load).
     const hitsAfterLoad = dataJsonHits;
@@ -164,7 +168,7 @@ test.describe("QA Dashboard frontend smoke", () => {
   test("nodata store (Sirius) stays No data under threshold override", async ({ page }) => {
     const storeList = page.locator("#storeList");
     await storeList.waitFor({ state: "visible" });
-    await page.locator("#lbBody tr").first().waitFor({ state: "visible" });
+    await page.locator('[data-testid="callout"]').first().waitFor({ state: "visible" });
 
     // Open settings and lower returnRate to 0 — the most aggressive possible override.
     await page.click("#settingsBtn");
@@ -176,17 +180,19 @@ test.describe("QA Dashboard frontend smoke", () => {
     await returnRateInput.dispatchEvent("input");
     await page.waitForTimeout(100);
 
-    // Sirius is a known nodata store. Its leaderboard row must still show "No data".
+    // Sirius is a known nodata store. Navigate to Rankings > Store to check its leaderboard row.
+    await page.click("#drawerClose");
+    await expect(drawer).not.toHaveClass(/open/);
+    await page.locator('[data-testid="tab-rank"]').click();
+    await page.locator('[data-testid="groupby-store"]').click();
+
     // Find the leaderboard row that contains "Sirius" and check its health pill.
     const siriusRow = page.locator("#lbBody tr", { hasText: "Sirius" });
     await expect(siriusRow).toBeVisible();
     const healthPill = siriusRow.locator(".health-pill");
     await expect(healthPill).toHaveText("No data");
 
-    // Close the drawer and click the Sirius store button in the rail.
-    await page.click("#drawerClose");
-    await expect(drawer).not.toHaveClass(/open/);
-
+    // Click the Sirius store button in the rail.
     const siriusBtn = storeList.locator("button", { hasText: "Sirius" });
     await siriusBtn.click();
 
@@ -195,4 +201,165 @@ test.describe("QA Dashboard frontend smoke", () => {
     await expect(noDataTag).toBeVisible();
     await expect(noDataTag).toHaveText("No data");
   });
+});
+
+// --------------------------------------------------------------------------
+// Task 7: Pinned verdict header + tab scaffold
+// --------------------------------------------------------------------------
+test("renders pinned verdict header with state + portfolio KPIs", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
+  await expect(page.locator('[data-testid="kpi-rating"]')).toBeVisible();
+  await expect(page.locator('[data-testid="kpi-returnrate"]')).toBeVisible();
+  await expect(page.locator('[data-testid="kpi-refundexposure"]')).toBeVisible();
+  // Reuse the EXISTING flagged KPI testid — do not rename it (Phase 1 smoke depends on it).
+  await expect(page.locator('[data-testid="flagged-kpi-val"]')).toBeVisible();
+});
+
+test("has three tabs; clicking switches the active panel", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('[data-testid="tab-briefing"]')).toHaveClass(/active/);
+  await page.locator('[data-testid="tab-brands"]').click();
+  await expect(page.locator('[data-testid="panel-brands"]')).toBeVisible();
+  await expect(page.locator('[data-testid="panel-briefing"]')).toBeHidden();
+});
+
+// --------------------------------------------------------------------------
+// Task 8: Briefing tab — derived brand callouts
+// --------------------------------------------------------------------------
+test("briefing lists callouts derived from brand health (no nodata callouts)", async ({ page }) => {
+  await page.goto("/");
+  const callouts = page.locator('[data-testid="callout"]');
+  await expect(callouts.first()).toBeVisible();
+  // every callout names a brand and carries a bucket pill
+  await expect(page.locator('[data-testid="callout-bucket"]').first()).toBeVisible();
+});
+
+// --------------------------------------------------------------------------
+// Task 9: Brands tab — all-brands cockpit grid
+// --------------------------------------------------------------------------
+test("brands tab shows one health-colored card per brand", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-testid="tab-brands"]').click();
+  const cards = page.locator('[data-testid="brand-card"]');
+  await expect(cards.first()).toBeVisible();
+  // count matches portfolio.brands length from the served data.json
+  const data = await page.evaluate(() => fetch("/data.json").then(r => r.json()));
+  await expect(cards).toHaveCount(data.portfolio.brands.length);
+});
+
+// --------------------------------------------------------------------------
+// Task 10: Rankings table + Brand|Store toggle
+// --------------------------------------------------------------------------
+test("rankings table renders brand rows; toggle switches to store grouping", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-testid="tab-rank"]').click();
+  await expect(page.locator('[data-testid="rank-row"]').first()).toBeVisible();
+  await page.locator('[data-testid="groupby-store"]').click();
+  const data = await page.evaluate(() => fetch("/data.json").then(r => r.json()));
+  await expect(page.locator('[data-testid="rank-row"]')).toHaveCount(data.portfolio.leaderboard.length);
+});
+
+// --------------------------------------------------------------------------
+// Task 11: Live threshold recompute for verdict/brands/briefing — no refetch
+// --------------------------------------------------------------------------
+test("tightening ratingDrop re-derives verdict WITHOUT an extra data.json fetch", async ({ page }) => {
+  // Instrument requests BEFORE navigating so the initial load is counted.
+  let dataFetches = 0;
+  page.on("request", (r) => { if (r.url().includes("data.json")) dataFetches += 1; });
+  await page.goto("/");
+
+  // Wait for full render (callouts populated = fetch done + computeBrands ran).
+  await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
+  await page.locator('[data-testid="callout"]').first().waitFor({ state: "visible" });
+  const fetchesAfterLoad = dataFetches;   // should be exactly 1
+
+  // --- Capture baseline verdict text (expected "Stable" from data) ---
+  const verdictEl = page.locator('[data-testid="verdict-state"]');
+  const verdictBefore = await verdictEl.innerText();
+
+  // Open the Settings drawer.
+  await page.locator("#settingsBtn").click();
+  const drawer = page.locator("#drawer");
+  await expect(drawer).toHaveClass(/open/);
+
+  // -----------------------------------------------------------------------
+  // FLIP 1 — Verdict: set ratingDrop = 0 (default is -0.2).
+  //   Why it flips: data.json brands TreeActiv, NatriSweet, Teaki Hut all
+  //   have ratingDelta = 0.  computeBrands filters `ratingDelta <= ratingDrop`,
+  //   so 0 <= 0 is true for all three → decliningBrands = 3 ≥ 2 →
+  //   portfolioVerdict returns "slipping" (was "stable").
+  // -----------------------------------------------------------------------
+  const dropInput = page.locator('input[data-key="ratingDrop"]');
+  await expect(dropInput).toBeVisible();
+  await dropInput.fill("0");
+  await dropInput.dispatchEvent("input");
+  await page.waitForTimeout(100);   // flush synchronous re-render
+
+  // ASSERT: no extra fetch during live recompute (the core §6.1 guarantee).
+  expect(dataFetches).toBe(fetchesAfterLoad);
+
+  // ASSERT: verdict text actually changed — recompute reached the DOM.
+  const verdictAfterDrop = await verdictEl.innerText();
+  expect(verdictAfterDrop).not.toBe(verdictBefore);
+  // Specifically, the state must now contain "Slipping".
+  expect(verdictAfterDrop.toLowerCase()).toContain("slipping");
+
+  // -----------------------------------------------------------------------
+  // FLIP 2 — Brand health: set returnRate threshold = 1.0 (default is 5.0).
+  //   Why it flips: brands with returnRate > 1.0 are reclassified bad:
+  //     Unbranded  returnRate ≈ 2.04 %   (currently good)
+  //     TreeActiv  returnRate ≈ 1.79 %   (currently good)
+  //     NatriSweet returnRate ≈ 1.01 %   (currently good)
+  //   storeHealth: returnRate >= threshold → "bad".
+  //   The brand-card element gets class "bad" instead of "good".
+  // -----------------------------------------------------------------------
+
+  // Close the settings drawer first, then navigate to the All Brands tab.
+  await page.click("#drawerClose");
+  await expect(drawer).not.toHaveClass(/open/);
+
+  // Open settings again and tighten returnRate.
+  await page.locator("#settingsBtn").click();
+  await expect(drawer).toHaveClass(/open/);
+  const returnRateInput = page.locator('input[data-key="returnRate"]');
+  await expect(returnRateInput).toBeVisible();
+  await returnRateInput.fill("1");
+  await returnRateInput.dispatchEvent("input");
+  await page.waitForTimeout(100);
+
+  // ASSERT: still no extra fetch.
+  expect(dataFetches).toBe(fetchesAfterLoad);
+
+  // Go to All Brands tab to inspect brand cards.
+  await page.click("#drawerClose");
+  await expect(drawer).not.toHaveClass(/open/);
+  await page.locator('[data-testid="tab-brands"]').click();
+  await page.locator('[data-testid="panel-brands"]').waitFor({ state: "visible" });
+
+  // ASSERT: at least one brand card now has class "bad" (Unbranded has returnRate ≈ 2.04).
+  const badCards = page.locator('[data-testid="brand-card"].bad');
+  await expect(badCards.first()).toBeVisible();
+  const badCount = await badCards.count();
+  expect(badCount).toBeGreaterThanOrEqual(1);
+
+  // ASSERT: no further fetches have occurred throughout all the above steps.
+  expect(dataFetches).toBe(fetchesAfterLoad);
+});
+
+// --------------------------------------------------------------------------
+// Task 12: Brand detail drawer + Warehouse placeholder
+// --------------------------------------------------------------------------
+test("clicking a ranking row opens the detail drawer with that brand's ASINs", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-testid="tab-rank"]').click();
+  await page.locator('[data-testid="rank-row"]').first().click();
+  await expect(page.locator('[data-testid="drawer"]')).toBeVisible();
+  await expect(page.locator('[data-testid="drawer-asin"]').first()).toBeVisible();
+});
+
+test("warehouse QA placeholder is present and inert", async ({ page }) => {
+  await page.goto("/");
+  const ph = page.locator('[data-testid="warehouse-placeholder"]');
+  await expect(ph).toBeVisible();
 });

@@ -3,7 +3,7 @@
 
 export const DEFAULT_THRESHOLDS = {
   returnRate: 5.0, returnRateWarn: 4.0, refundSpike: 25,
-  ratingBad: 3.5, ratingWarn: 4.0, ratingDrop: -0.2
+  ratingBad: 3.5, ratingWarn: 4.0, ratingDrop: -0.2, ratingRise: 0.1
 };
 
 export function storeHealth(s, t) {
@@ -33,3 +33,13 @@ export function ratingClass(r, t) {
   return "good";
 }
 export const flaggedCount = (asins, t) => asins.reduce((n, a) => n + (isFlagged(a, t) ? 1 : 0), 0);
+
+// Portfolio rating-trajectory verdict (spec §6). Pure: (aggregates + thresholds) -> label.
+//   slipping  : trajectory at/below ratingDrop, OR >= 2 brands individually declining
+//   improving : trajectory at/above ratingRise
+//   stable    : otherwise (incl. ratingDelta === null)
+export function portfolioVerdict(p, t) {
+  if ((p.ratingDelta != null && p.ratingDelta <= t.ratingDrop) || p.decliningBrands >= 2) return "slipping";
+  if (p.ratingDelta != null && p.ratingDelta >= t.ratingRise) return "improving";
+  return "stable";
+}

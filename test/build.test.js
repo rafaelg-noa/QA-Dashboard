@@ -21,6 +21,7 @@ import { readFileSync } from "node:fs";
 import { normalizeBaserow } from "../generator/baserow.js";
 import { aggregatePma } from "../generator/pma.js";
 import { buildSnapshot } from "../generator/build.js";
+import { portfolioVerdict } from "../public/shared/classify.js";
 
 const econ = JSON.parse(readFileSync(new URL("./fixtures/pma-economics.sample.json", import.meta.url)));
 const brows = JSON.parse(readFileSync(new URL("./fixtures/baserow-691.sample.json", import.meta.url)));
@@ -55,17 +56,22 @@ function storeAsins(accountId) {
   return Object.values(pma).filter((a) => a.accountId === accountId);
 }
 
+/** Helper: independent brand grouping straight from fixtures. */
+function brandAsins(brandName) {
+  return Object.values(pma).filter((a) => (ratings[a.asin]?.brand ?? "Unbranded") === brandName);
+}
+
 // ── Snapshot envelope ─────────────────────────────────────────────────────────
 
-test("envelope: generatedAt, refreshIntervalHours default 6, window.days, thresholds (all 6)", () => {
+test("envelope: generatedAt, refreshIntervalHours default 6, window.days, thresholds (all 7)", () => {
   const snap = build();
   assert.equal(snap.generatedAt, GENERATED_AT);
   assert.equal(snap.refreshIntervalHours, 6);
   assert.equal(snap.window.days, 30);
-  // thresholds block is exactly the 6 classification values, equal to config
+  // thresholds block is exactly the 7 classification values, equal to config
   assert.deepEqual(snap.thresholds, cfg.classification);
-  assert.equal(Object.keys(snap.thresholds).length, 6);
-  for (const k of ["returnRate", "returnRateWarn", "refundSpike", "ratingBad", "ratingWarn", "ratingDrop"]) {
+  assert.equal(Object.keys(snap.thresholds).length, 7);
+  for (const k of ["returnRate", "returnRateWarn", "refundSpike", "ratingBad", "ratingWarn", "ratingDrop", "ratingRise"]) {
     assert.ok(k in snap.thresholds, `thresholds.${k} present`);
   }
 });
@@ -356,4 +362,77 @@ test("leaderboard health-rank dominates returnRate tie-break (nodata sorts after
   for (let i = 0; i < firstNodataIdx; i++) assert.notEqual(lb[i].health, "nodata");
   // every entry from there on is nodata
   for (let i = firstNodataIdx; i < lb.length; i++) assert.equal(lb[i].health, "nodata");
+});
+
+// ── portfolio.brands[] ────────────────────────────────────────────────────────
+
+test("portfolio.brands: one entry per distinct brand present (+ Unbranded if any null-brand ASIN)", () => {
+  const snap = build();
+  const names = new Set(snap.portfolio.brands.map((b) => b.name));
+  const expected = new Set(
+    Object.values(pma).map((a) => ratings[a.asin]?.brand ?? "Unbranded")
+  );
+  assert.deepEqual(names, expected);
+});
+
+test("portfolio.brands: ratio-of-sums returnRate for a known brand", () => {
+  const snap = build();
+  // Pick the first brand that has sales in window.
+  const brand = snap.portfolio.brands.find((b) => b.health !== "nodata");
+  const aggs = brandAsins(brand.name);
+  const sold = aggs.reduce((n, a) => n + a.unitsSoldWindow, 0);
+  const ret = aggs.reduce((n, a) => n + a.unitsReturnedWindow, 0);
+  const expected = sold === 0 ? null : (ret / sold) * 100;
+  close(brand.returnRate, expected, 1e-6, `brand ${brand.name} returnRate`);
+});
+
+test("portfolio.brands: refundExposure = round(Σ refundLast)", () => {
+  const snap = build();
+  const brand = snap.portfolio.brands.find((b) => b.health !== "nodata");
+  const aggs = brandAsins(brand.name);
+  const expected = Math.round(aggs.reduce((n, a) => n + a.refundLast, 0) * 100) / 100;
+  close(brand.refundExposure, expected, 1e-6, `brand ${brand.name} refundExposure`);
+});
+
+test("portfolio.brands: sorted worst-health-first", () => {
+  const snap = build();
+  const RANK = { bad: 0, warn: 1, good: 2, nodata: 3 };
+  const ranks = snap.portfolio.brands.map((b) => RANK[b.health]);
+  for (let i = 1; i < ranks.length; i++) {
+    assert.ok(ranks[i] >= ranks[i - 1], "brands not in worst-first health order");
+  }
+});
+
+test("portfolio.brands: each entry has the §5.3 shape", () => {
+  const snap = build();
+  for (const b of snap.portfolio.brands) {
+    for (const k of ["id", "name", "health", "rating", "ratingDelta", "returnRate", "refundSpike", "refundExposure", "flagged", "trend"]) {
+      assert.ok(k in b, `brand entry missing ${k}`);
+    }
+    assert.equal(b.trend.length, 12);
+  }
+});
+
+test("portfolio.ratingDelta: ratingCount-weighted reviewDelta over all rated ASINs", () => {
+  const snap = build();
+  let num = 0, den = 0;
+  for (const a of Object.values(pma)) {
+    const r = ratings[a.asin];
+    if (!r || r.reviewDelta == null || r.ratingCount == null) continue;
+    num += r.reviewDelta * r.ratingCount; den += r.ratingCount;
+  }
+  const expected = den === 0 ? null : num / den;
+  if (expected === null) assert.equal(snap.portfolio.ratingDelta, null);
+  else close(snap.portfolio.ratingDelta, expected, 1e-6, "portfolio.ratingDelta");
+});
+
+test("portfolio.verdict: shape + matches classify over computed inputs", () => {
+  const snap = build();
+  const v = snap.portfolio.verdict;
+  assert.ok(["improving", "stable", "slipping"].includes(v.state));
+  const decliners = snap.portfolio.brands.filter(
+    (b) => b.ratingDelta != null && b.ratingDelta <= cfg.classification.ratingDrop
+  ).length;
+  assert.equal(v.decliningBrands, decliners);
+  assert.equal(v.state, portfolioVerdict({ ratingDelta: snap.portfolio.ratingDelta, decliningBrands: decliners }, cfg.classification));
 });

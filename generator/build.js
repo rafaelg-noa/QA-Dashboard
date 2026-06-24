@@ -20,7 +20,7 @@
  * implementation shared with the browser) — do NOT reimplement it here.
  */
 
-import { storeHealth, asinFlags, flaggedCount } from "../public/shared/classify.js";
+import { storeHealth, asinFlags, flaggedCount, portfolioVerdict } from "../public/shared/classify.js";
 
 const WEEKS = 12;
 
@@ -194,6 +194,89 @@ function rollupStore(store, pma, ratings, thresholds) {
   };
 }
 
+/** Brand name → stable slug id. */
+function brandSlug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Roll up one brand from its pre-filtered pma ASIN aggregates + ratings.
+ * Mirrors rollupStore (ratio-of-sums, weightedMean, classify, empty→nodata),
+ * and additionally surfaces refundExposure = round(Σ refundLast).
+ */
+function rollupBrand(name, aggs, ratings, thresholds) {
+  let soldWin = 0, retWin = 0, soldPri = 0, retPri = 0, refLast = 0, refPri = 0;
+  const weekly = Array.from({ length: WEEKS }, () => ({ sold: 0, ret: 0 }));
+  const ratingRows = [];
+
+  for (const a of aggs) {
+    soldWin += a.unitsSoldWindow;
+    retWin += a.unitsReturnedWindow;
+    soldPri += a.unitsSoldPrior;
+    retPri += a.unitsReturnedPrior;
+    refLast += a.refundLast;
+    refPri += a.refundPrior;
+    for (let w = 0; w < WEEKS; w++) {
+      weekly[w].sold += a.weekly[w].unitsSold;
+      weekly[w].ret += a.weekly[w].unitsReturned;
+    }
+    ratingRows.push(ratings[a.asin] ?? null);
+  }
+
+  const isEmpty = aggs.length === 0 || soldWin === 0;
+  if (isEmpty) {
+    return {
+      id: brandSlug(name), name, health: "nodata",
+      rating: null, ratingDelta: null, returnRate: null,
+      refundSpike: null, refundExposure: round(refLast, 2), flagged: 0,
+      trend: Array(WEEKS).fill(null),
+    };
+  }
+
+  const returnRate = (retWin / soldWin) * 100;
+  const refundSpike = refPri === 0 ? null : ((refLast - refPri) / refPri) * 100;
+  const { mean: rating } = weightedMean(ratingRows, "reviewRating");
+  const { mean: ratingDelta } = weightedMean(ratingRows, "reviewDelta");
+  const trend = weekly.map((w) => (w.sold === 0 ? null : (w.ret / w.sold) * 100));
+  const health = storeHealth({ returnRate, reviewRating: rating, reviewDelta: ratingDelta, refundSpike }, thresholds);
+
+  const flagInputs = aggs.map((a) => ({
+    returnRate: a.returnRate,
+    refundSpike: a.refundSpike,
+    reviewDelta: ratings[a.asin]?.reviewDelta ?? null,
+  }));
+  const flagged = flaggedCount(flagInputs, thresholds);
+
+  return {
+    id: brandSlug(name), name, health,
+    rating: round(rating, 2), ratingDelta: round(ratingDelta, 2),
+    returnRate, refundSpike, refundExposure: round(refLast, 2), flagged, trend,
+  };
+}
+
+/**
+ * Group ALL pma aggregates by brand (null → "Unbranded"), roll up each,
+ * and sort worst-health-first (HEALTH_RANK then returnRate desc, nulls last).
+ */
+function rollupBrands(pma, ratings, thresholds) {
+  const byBrand = new Map();
+  for (const a of Object.values(pma)) {
+    const name = ratings[a.asin]?.brand ?? "Unbranded";
+    if (!byBrand.has(name)) byBrand.set(name, []);
+    byBrand.get(name).push(a);
+  }
+  const brands = [...byBrand].map(([name, aggs]) => rollupBrand(name, aggs, ratings, thresholds));
+  return brands.sort((a, b) => {
+    const rank = HEALTH_RANK[a.health] - HEALTH_RANK[b.health];
+    if (rank !== 0) return rank;
+    const ar = a.returnRate, br = b.returnRate;
+    if (ar == null && br == null) return 0;
+    if (ar == null) return 1;
+    if (br == null) return -1;
+    return br - ar;
+  });
+}
+
 /**
  * Roll up the portfolio from all pma ASIN aggregates + the per-store results.
  * All rates are ratio-of-sums across ALL ASINs (not means of store rates).
@@ -224,6 +307,7 @@ function rollupPortfolio(pma, ratings, storeResults, storeCount, thresholds) {
   const refundExposure = round(refLast, 2);
   const flagged = storeResults.reduce((n, r) => n + r._flagged, 0);
   const { mean: avgRating } = weightedMean(ratingRows, "reviewRating");
+  const { mean: ratingDelta } = weightedMean(ratingRows, "reviewDelta");
   const trend = weekly.map((w) => (w.sold === 0 ? null : (w.ret / w.sold) * 100));
 
   // Leaderboard: one entry per store, worst-health-first, tie-break returnRate desc (nulls last).
@@ -253,6 +337,7 @@ function rollupPortfolio(pma, ratings, storeResults, storeCount, thresholds) {
     refundExposure,
     flaggedCount: flagged,
     avgRating,
+    ratingDelta: round(ratingDelta, 2),
     storeCount,
     trend,
     conv: Array(WEEKS).fill(null),
@@ -294,6 +379,15 @@ export function buildSnapshot({
     storeList.length,
     thresholds
   );
+  portfolio.brands = rollupBrands(pma, ratings, thresholds);
+  const decliningBrands = portfolio.brands.filter(
+    (b) => b.ratingDelta != null && b.ratingDelta <= thresholds.ratingDrop
+  ).length;
+  portfolio.verdict = {
+    state: portfolioVerdict({ ratingDelta: portfolio.ratingDelta, decliningBrands }, thresholds),
+    ratingDelta: portfolio.ratingDelta,
+    decliningBrands,
+  };
 
   return {
     generatedAt,
@@ -306,6 +400,7 @@ export function buildSnapshot({
       ratingBad: thresholds.ratingBad,
       ratingWarn: thresholds.ratingWarn,
       ratingDrop: thresholds.ratingDrop,
+      ratingRise: thresholds.ratingRise,
     },
     portfolio,
     stores: storeResults.map((r) => r.store),

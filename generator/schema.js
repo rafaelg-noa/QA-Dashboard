@@ -36,7 +36,7 @@ const windowSchema = {
 };
 
 // ── thresholds ────────────────────────────────────────────────────────────────
-// All 6 thresholds required (spec §12): these are the client-recompute config.
+// All 7 thresholds required (spec §12): these are the client-recompute config.
 
 const thresholdsSchema = {
   type: "object",
@@ -47,6 +47,7 @@ const thresholdsSchema = {
     "ratingBad",
     "ratingWarn",
     "ratingDrop",
+    "ratingRise",
   ],
   properties: {
     returnRate: num,
@@ -55,6 +56,39 @@ const thresholdsSchema = {
     ratingBad: num,
     ratingWarn: num,
     ratingDrop: num,
+    ratingRise: num,
+  },
+  additionalProperties: false,
+};
+
+// ── brand item ────────────────────────────────────────────────────────────────
+
+const brandItemSchema = {
+  type: "object",
+  required: ["id", "name", "health", "rating", "ratingDelta", "returnRate", "refundSpike", "refundExposure", "flagged", "trend"],
+  properties: {
+    id: str,
+    name: str,
+    health: { type: "string", enum: ["good", "warn", "bad", "nodata"] },
+    rating: numOrNull,
+    ratingDelta: numOrNull,
+    returnRate: numOrNull,
+    refundSpike: numOrNull,
+    refundExposure: num,
+    flagged: num,
+    trend: { type: "array", items: numOrNull },
+  },
+};
+
+// ── verdict ───────────────────────────────────────────────────────────────────
+
+const verdictSchema = {
+  type: "object",
+  required: ["state", "ratingDelta", "decliningBrands"],
+  properties: {
+    state: { type: "string", enum: ["improving", "stable", "slipping"] },
+    ratingDelta: numOrNull,
+    decliningBrands: num,
   },
   additionalProperties: false,
 };
@@ -85,10 +119,13 @@ const portfolioSchema = {
     "refundExposure",
     "flaggedCount",
     "avgRating",
+    "ratingDelta",
     "storeCount",
     "trend",
     "conv",
     "leaderboard",
+    "verdict",
+    "brands",
   ],
   properties: {
     returnRate: numOrNull,
@@ -96,10 +133,13 @@ const portfolioSchema = {
     refundExposure: num,
     flaggedCount: num,
     avgRating: numOrNull,
+    ratingDelta: numOrNull,
     storeCount: num,
     trend: { type: "array", items: numOrNull },
     conv: { type: "array", items: { type: ["null"] } },
     leaderboard: { type: "array", items: leaderboardItemSchema },
+    verdict: verdictSchema,
+    brands: { type: "array", items: brandItemSchema },
   },
 };
 
