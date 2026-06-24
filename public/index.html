@@ -289,6 +289,28 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
+  /* ---- Briefing callouts ---- */
+  .callout-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .callout {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .callout-bucket {
+    font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 700;
+    letter-spacing: .4px; text-transform: uppercase; border: 1px solid; flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .callout-bucket.bad  { color: var(--bad);  background: var(--bad-bg);  border-color: rgba(248,81,73,.3); }
+  .callout-bucket.warn { color: var(--warn); background: var(--warn-bg); border-color: rgba(210,153,34,.3); }
+  .callout-bucket.good { color: var(--good); background: var(--good-bg); border-color: rgba(63,185,80,.3); }
+  .callout-body { flex: 1; min-width: 0; }
+  .callout-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .callout-signals { font-size: 12px; color: var(--ink-dim); display: flex; flex-wrap: wrap; gap: 8px; }
+  .callout-signals .sig { display: flex; align-items: center; gap: 3px; }
+  .callout-signals .sig.bad  { color: var(--bad); }
+  .callout-signals .sig.warn { color: var(--warn); }
+
   @media (max-width: 900px) {
     .shell { flex-direction: column; }
     .rail { width: 100%; height: auto; position: static; flex-direction: column; }
@@ -697,6 +719,93 @@ function wireTabBar(){
 }
 
 // ====================================================================
+// Briefing panel — derived brand callouts
+// ====================================================================
+const BUCKET_LABEL = { bad: "Worst", warn: "Watch", good: "OK" };
+
+function buildCalloutSignals(b, t){
+  const sigs = [];
+
+  // Rating delta
+  if (b.ratingDelta != null && isFinite(b.ratingDelta) && Math.abs(b.ratingDelta) >= 0.05){
+    const drop = b.ratingDelta < 0;
+    const cls = drop ? "bad" : "warn";
+    const arrow = drop ? "▼" : "▲";
+    sigs.push({ text: `rating ${arrow}${Math.abs(b.ratingDelta).toFixed(2)}`, cls });
+  } else if (b.rating != null && isFinite(b.rating)){
+    sigs.push({ text: `rating ${fmtRating(b.rating)}★`, cls: "" });
+  }
+
+  // Return rate
+  if (b.returnRate != null && isFinite(b.returnRate)){
+    const cls = (t && b.returnRate >= t.returnRate) ? "bad"
+              : (t && b.returnRate >= t.returnRateWarn) ? "warn" : "";
+    sigs.push({ text: `returns ${fmtPct(b.returnRate)}`, cls });
+  }
+
+  // Refund spike
+  if (b.refundSpike != null && isFinite(b.refundSpike)){
+    const cls = (t && b.refundSpike > t.refundSpike) ? "bad"
+              : (b.refundSpike > 0) ? "warn" : "";
+    sigs.push({ text: `refunds ${fmtSpike(b.refundSpike)}`, cls });
+  }
+
+  // Flagged ASIN count
+  if (b.flagged != null && b.flagged > 0){
+    const cls = b.flagged >= 3 ? "bad" : "warn";
+    sigs.push({ text: `${b.flagged} ASIN${b.flagged === 1 ? "" : "s"} flagged`, cls });
+  }
+
+  return sigs;
+}
+
+function calloutHtml(b, t){
+  const bucket = b.health; // bad / warn / good
+  const label = BUCKET_LABEL[bucket] || bucket;
+  const signals = buildCalloutSignals(b, t);
+  const sigsHtml = signals.map(s =>
+    `<span class="sig${s.cls ? " " + s.cls : ""}">${esc(s.text)}</span>`
+  ).join("");
+  return `
+    <div class="callout" data-testid="callout" data-brand="${esc(b.id)}">
+      <span class="callout-bucket ${bucket}" data-testid="callout-bucket">${esc(label)}</span>
+      <div class="callout-body">
+        <div class="callout-name">${esc(b.name)}</div>
+        <div class="callout-signals">${sigsHtml || '<span class="sig">No signals</span>'}</div>
+      </div>
+    </div>`;
+}
+
+function briefingPanel(p, t, lbRows){
+  // Filter out nodata brands; preserve generator order (worst-first).
+  const calloutBrands = (p.brands || []).filter(b => b.health !== "nodata");
+  const calloutItems = calloutBrands.map(b => calloutHtml(b, t)).join("");
+  const empty = calloutBrands.length === 0
+    ? `<div class="empty">No brands with signal data</div>`
+    : "";
+  return `
+    <div class="grid">
+      <div class="card full">
+        <h3>Brand callouts<span class="meta">worst first · nodata omitted</span></h3>
+        <div class="callout-list">
+          ${calloutItems || empty}
+        </div>
+      </div>
+
+      ${trendCard(p.trend, t.returnRate)}
+
+      <div class="card">
+        <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
+        <table>
+          <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
+          <tbody id="lbBody">${lbRows}</tbody>
+        </table>
+      </div>
+    </div>
+    ${footnote()}`;
+}
+
+// ====================================================================
 // ALL-STORES portfolio view
 // ====================================================================
 function renderPortfolio(){
@@ -788,34 +897,15 @@ function renderPortfolio(){
     ${renderTabBar()}
 
     <div class="tab-panel${activeTab === "briefing" ? " active" : ""}" data-panel="briefing" data-testid="panel-briefing">
-      <div class="grid">
-        ${trendCard(p.trend, t.returnRate)}
-
-        <div class="card">
-          <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
-          <table>
-            <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
-            <tbody id="lbBody">${lbRows}</tbody>
-          </table>
-        </div>
-
-        <div class="card full">
-          <h3>Worst-offending ASINs <span class="info-slot" data-tip="flagged"></span><span class="meta">flagged across all stores · highest return rate first</span></h3>
-          <table>
-            <thead><tr><th>ASIN / Store</th><th>Title</th><th>Return rate</th><th>Refund Δ</th><th>Review rating</th></tr></thead>
-            <tbody>${worstRows || `<tr><td colspan="5" class="empty">No flagged ASINs</td></tr>`}</tbody>
-          </table>
-        </div>
-      </div>
-      ${footnote()}
+      ${briefingPanel(p, t, lbRows)}
     </div>
 
     <div class="tab-panel${activeTab === "brands" ? " active" : ""}" data-panel="brands" data-testid="panel-brands">
-      <div class="empty" style="padding:40px 0;font-size:14px">Brands panel — coming in Task 8</div>
+      <div class="empty" style="padding:40px 0;font-size:14px">Brands panel — coming in Task 9</div>
     </div>
 
     <div class="tab-panel${activeTab === "rank" ? " active" : ""}" data-panel="rank" data-testid="panel-rank">
-      <div class="empty" style="padding:40px 0;font-size:14px">Rankings panel — coming in Task 9</div>
+      <div class="empty" style="padding:40px 0;font-size:14px">Rankings panel — coming in Task 10</div>
     </div>`;
 
   // Clicking a leaderboard row selects that store.

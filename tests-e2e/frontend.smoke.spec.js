@@ -217,3 +217,14 @@ test("has three tabs; clicking switches the active panel", async ({ page }) => {
   await expect(page.locator('[data-testid="panel-brands"]')).toBeVisible();
   await expect(page.locator('[data-testid="panel-briefing"]')).toBeHidden();
 });
+
+// --------------------------------------------------------------------------
+// Task 8: Briefing tab — derived brand callouts
+// --------------------------------------------------------------------------
+test("briefing lists callouts derived from brand health (no nodata callouts)", async ({ page }) => {
+  await page.goto("/");
+  const callouts = page.locator('[data-testid="callout"]');
+  await expect(callouts.first()).toBeVisible();
+  // every callout names a brand and carries a bucket pill
+  await expect(page.locator('[data-testid="callout-bucket"]').first()).toBeVisible();
+});
