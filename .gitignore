@@ -33,3 +33,6 @@ spike/*
 test-results/
 playwright-report/
 .playwright-mcp/
+
+# Visual brainstorm companion
+.superpowers/
