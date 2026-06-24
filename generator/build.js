@@ -306,6 +306,7 @@ export function buildSnapshot({
       ratingBad: thresholds.ratingBad,
       ratingWarn: thresholds.ratingWarn,
       ratingDrop: thresholds.ratingDrop,
+      ratingRise: thresholds.ratingRise,
     },
     portfolio,
     stores: storeResults.map((r) => r.store),
