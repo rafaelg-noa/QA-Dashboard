@@ -865,23 +865,6 @@ function renderPortfolio(){
       <td class="num mono">${l.flagged}</td>
     </tr>`).join("");
 
-  // Worst ASINs roll-up across all stores (flagged, sorted by return rate desc, top 8).
-  const worst = [];
-  for (const s of STORES){
-    for (const a of s.asins){
-      if (isFlagged(a, t)) worst.push({ a, storeName: s.name });
-    }
-  }
-  worst.sort((x, y) => (y.a.returnRate ?? -1) - (x.a.returnRate ?? -1));
-  const worstRows = worst.slice(0, 8).map(({ a, storeName }) => `
-    <tr>
-      <td><span class="asin mono">${esc(a.asin)}</span><br><span style="color:var(--ink-faint);font-size:11px">${esc(storeName)}</span></td>
-      <td>${a.title ? `<span style="color:var(--ink-dim)">${esc(a.title.length > 54 ? a.title.slice(0,54) + "…" : a.title)}</span>` : `<span style="color:var(--ink-faint)">—</span>`}</td>
-      <td class="num"><span class="rate-pill ${rateClass(a.returnRate, t)}">${fmtPct(a.returnRate)}</span></td>
-      <td class="num mono">${esc(a.refundDelta ?? "n/a")}</td>
-      <td class="num"><span style="color:var(--${ratingColorVar(a.reviewRating, t)})">${fmtRating(a.reviewRating)}</span></td>
-    </tr>`).join("");
-
   document.getElementById("main").innerHTML = `
     <div class="topbar">
       <div class="h1">All Stores
