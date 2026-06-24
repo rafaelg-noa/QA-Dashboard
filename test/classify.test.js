@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   DEFAULT_THRESHOLDS as D, storeHealth, asinFlags, isFlagged,
-  rateClass, ratingClass, flaggedCount
+  rateClass, ratingClass, flaggedCount, portfolioVerdict
 } from "../public/shared/classify.js";
 
 test("storeHealth: bad when return rate >= breach (§6)", () => {
@@ -53,4 +53,27 @@ test("OVERRIDE: raising thresholds clears flags (reset-to-defaults path)", () =>
   const lax = { ...D, returnRate: 9, returnRateWarn: 8, refundSpike: 99, ratingDrop: -9 };
   assert.equal(storeHealth({ returnRate: 6, reviewRating: 4.5, reviewDelta: -0.5, refundSpike: 40 }, lax), "good");
   assert.equal(flaggedCount([{ returnRate: 6, refundSpike: 40, reviewDelta: -0.5 }], lax), 0);
+});
+
+test("portfolioVerdict: slipping when ratingDelta <= ratingDrop", () => {
+  assert.equal(portfolioVerdict({ ratingDelta: -0.2, decliningBrands: 0 }, D), "slipping");
+  assert.equal(portfolioVerdict({ ratingDelta: -0.5, decliningBrands: 0 }, D), "slipping");
+});
+test("portfolioVerdict: slipping when >= 2 brands declining (even if ratingDelta ok)", () => {
+  assert.equal(portfolioVerdict({ ratingDelta: 0.05, decliningBrands: 2 }, D), "slipping");
+});
+test("portfolioVerdict: improving when ratingDelta >= ratingRise", () => {
+  assert.equal(portfolioVerdict({ ratingDelta: 0.1, decliningBrands: 0 }, D), "improving");
+  assert.equal(portfolioVerdict({ ratingDelta: 0.3, decliningBrands: 1 }, D), "improving");
+});
+test("portfolioVerdict: stable in the middle and when ratingDelta is null", () => {
+  assert.equal(portfolioVerdict({ ratingDelta: 0.0, decliningBrands: 1 }, D), "stable");
+  assert.equal(portfolioVerdict({ ratingDelta: null, decliningBrands: 1 }, D), "stable");
+});
+test("portfolioVerdict: slipping precedence — null ratingDelta but 2 decliners", () => {
+  assert.equal(portfolioVerdict({ ratingDelta: null, decliningBrands: 2 }, D), "slipping");
+});
+test("OVERRIDE: tightening ratingDrop flips stable->slipping (live recompute)", () => {
+  const t = { ...D, ratingDrop: -0.05 };
+  assert.equal(portfolioVerdict({ ratingDelta: -0.1, decliningBrands: 0 }, t), "slipping");
 });
