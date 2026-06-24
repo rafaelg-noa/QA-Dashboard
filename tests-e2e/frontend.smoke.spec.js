@@ -259,3 +259,24 @@ test("rankings table renders brand rows; toggle switches to store grouping", asy
   const data = await page.evaluate(() => fetch("/data.json").then(r => r.json()));
   await expect(page.locator('[data-testid="rank-row"]')).toHaveCount(data.portfolio.leaderboard.length);
 });
+
+// --------------------------------------------------------------------------
+// Task 11: Live threshold recompute for verdict/brands/briefing — no refetch
+// --------------------------------------------------------------------------
+test("tightening ratingDrop re-derives verdict WITHOUT an extra data.json fetch", async ({ page }) => {
+  let dataFetches = 0;
+  page.on("request", (r) => { if (r.url().includes("data.json")) dataFetches += 1; });
+  await page.goto("/");
+  await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
+  const fetchesAfterLoad = dataFetches;            // baseline (initial load)
+
+  await page.locator("#settingsBtn").click();      // open settings drawer
+  const drop = page.locator('input[data-key="ratingDrop"]');
+  await drop.fill("-0.01");                          // tightens "declining" -> likely flips toward slipping
+  await drop.dispatchEvent("input");                // ensure oninput fires
+
+  // No new data.json fetch was triggered by the threshold change (live recompute).
+  expect(dataFetches).toBe(fetchesAfterLoad);
+  // verdict still renders a valid state after recompute
+  await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
+});

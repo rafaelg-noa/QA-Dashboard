@@ -504,6 +504,76 @@ function storeHealthLive(s, t){
   }, t);
 }
 
+// ====================================================================
+// computeBrands(snap, t) — single source of truth for brand aggregates.
+//
+// DESIGN INTENT (§11):
+//   Rates (returnRate, refundSpike, rating, ratingDelta, trend, refundExposure)
+//   are build-time facts: they are derived via ratio-of-sums from raw unit/refund
+//   sums that are NOT carried in the snapshot ASIN entries (only per-ASIN ratios
+//   are stored). Faithfully reconstructing them client-side is not possible.
+//   Therefore we keep them from portfolio.brands[] as read-only facts.
+//
+//   Threshold-DEPENDENT fields are recomputed live from the snapshot ASINs:
+//     - health : storeHealth({returnRate, rating, ratingDelta, refundSpike}, t)
+//     - flagged : flaggedCount over that brand's ASINs (reviewDelta used for ratingDrop)
+//   After recomputation the array is re-sorted worst-first (HEALTH_RANK then
+//   returnRate desc, nulls last) — mirroring rollupBrands() in build.js.
+//
+//   Callers use this array for the verdict header, Briefing callouts, All Brands
+//   grid, and Rankings brand rows — so all four update together on every threshold
+//   change with no data.json refetch.
+// ====================================================================
+const HEALTH_RANK = { bad: 0, warn: 1, good: 2, nodata: 3 };
+
+function computeBrands(snap, t) {
+  // Build a map from brand name → ASINs across all stores.
+  // Matches rollupBrands: brand = asin.brand ?? "Unbranded".
+  const asinsByBrand = new Map();
+  for (const store of snap.stores) {
+    for (const a of store.asins) {
+      const name = a.brand ?? "Unbranded";
+      if (!asinsByBrand.has(name)) asinsByBrand.set(name, []);
+      asinsByBrand.get(name).push(a);
+    }
+  }
+
+  // For each build-time brand entry, recompute threshold-dependent fields only.
+  const recomputed = (snap.portfolio.brands || []).map(b => {
+    const asins = asinsByBrand.get(b.name) || [];
+
+    // health: reclassify with live thresholds (nodata preserved for null returnRate).
+    const health = b.returnRate == null
+      ? "nodata"
+      : storeHealth({
+          returnRate: b.returnRate,
+          reviewRating: b.rating,
+          reviewDelta: b.ratingDelta,
+          refundSpike: b.refundSpike
+        }, t);
+
+    // flagged: count ASINs that breach any live threshold.
+    // asinFlags needs {returnRate, refundSpike, reviewDelta} — use the ASIN entries.
+    const flagged = flaggedCount(
+      asins.map(a => ({ returnRate: a.returnRate, refundSpike: a.refundSpike, reviewDelta: a.reviewDelta })),
+      t
+    );
+
+    return { ...b, health, flagged };
+  });
+
+  // Re-sort worst-first: HEALTH_RANK then returnRate desc, nulls last.
+  return recomputed.sort((a, b) => {
+    const rank = HEALTH_RANK[a.health] - HEALTH_RANK[b.health];
+    if (rank !== 0) return rank;
+    const ar = a.returnRate, br = b.returnRate;
+    if (ar == null && br == null) return 0;
+    if (ar == null) return 1;
+    if (br == null) return -1;
+    return br - ar;
+  });
+}
+
 // ---------- HTML escaping ----------
 function esc(s){
   return String(s).replace(/[&<>"']/g, c =>
@@ -736,9 +806,13 @@ function kpiCard(c, alignLeft){
 const VERDICT_GLYPH = { improving: "↑", stable: "—", slipping: "↓" };
 const VERDICT_LABEL = { improving: "Improving", stable: "Stable", slipping: "Slipping" };
 
-function verdictHeader(p, t){
-  // Derive state via portfolioVerdict so Task 11 can route live thresholds through it.
-  const state = portfolioVerdict({ ratingDelta: p.verdict.ratingDelta, decliningBrands: p.verdict.decliningBrands }, t);
+// brands: live-recomputed brand array from computeBrands() — used to derive
+// decliningBrands with the current thresholds (NOT the frozen p.verdict value).
+function verdictHeader(p, t, brands){
+  // Recount declining brands from the live-recomputed array so tightening
+  // ratingDrop immediately shifts the verdict without a data.json refetch.
+  const decliningBrands = brands.filter(b => b.ratingDelta != null && b.ratingDelta <= t.ratingDrop).length;
+  const state = portfolioVerdict({ ratingDelta: p.ratingDelta, decliningBrands }, t);
   const glyph = VERDICT_GLYPH[state] || "—";
   const label = VERDICT_LABEL[state] || state;
   const ratingDeltaSign = (p.ratingDelta > 0 ? "+" : "") + fmtRating(p.ratingDelta);
@@ -854,9 +928,10 @@ function calloutHtml(b, t){
     </div>`;
 }
 
-function briefingPanel(p, t){
-  // Filter out nodata brands; preserve generator order (worst-first).
-  const calloutBrands = (p.brands || []).filter(b => b.health !== "nodata");
+// brands: live-recomputed array from computeBrands() — already sorted worst-first.
+function briefingPanel(p, t, brands){
+  // Filter out nodata brands; preserve live sort order (worst-first).
+  const calloutBrands = brands.filter(b => b.health !== "nodata");
   const calloutItems = calloutBrands.map(b => calloutHtml(b, t)).join("");
   const empty = calloutBrands.length === 0
     ? `<div class="empty">No brands with signal data</div>`
@@ -929,8 +1004,8 @@ function brandCardHtml(b, t){
     </div>`;
 }
 
-function brandsPanel(p, t){
-  const brands = p.brands || [];
+// brands: live-recomputed array from computeBrands() — already sorted worst-first.
+function brandsPanel(p, t, brands){
   if (brands.length === 0){
     return `<div class="empty" style="padding:40px 0;font-size:14px">No brand data available</div>`;
   }
@@ -962,24 +1037,18 @@ function sparkHtml(trend){
   return `<span class="spark" title="12-wk return rate trend">${bars}</span>`;
 }
 
-function rankingsPanel(p, t, lbRows){
-  const brands = p.brands || [];
+// brands: live-recomputed array from computeBrands() — already sorted worst-first.
+function rankingsPanel(p, t, lbRows, brands){
 
-  // Brand grouping view: one row per portfolio.brands[] entry (worst-first from generator).
+  // Brand grouping view: one row per live-recomputed brand (worst-first).
   const brandRows = brands.map(b => {
     const health = b.health || "nodata";
     const pillLabel = health === "good" ? "OK"
       : health === "warn" ? "Watch"
       : health === "bad"  ? "Alert"
       : "No data";
-    // Rating delta display
-    let ratingDeltaHtml = '<span class="flat">—</span>';
-    if (b.ratingDelta != null && isFinite(b.ratingDelta) && Math.abs(b.ratingDelta) >= 0.05){
-      const up = b.ratingDelta > 0;
-      const cls = up ? "down-good" : "up-bad";
-      const arrow = up ? "▲" : "▼";
-      ratingDeltaHtml = `<span class="${cls}">${arrow}${Math.abs(b.ratingDelta).toFixed(2)}</span>`;
-    }
+    // Rating delta display — reuse ratingDeltaTxt() for consistent coloring.
+    const ratingDeltaHtml = ratingDeltaTxt(b.ratingDelta);
     // Flagged pill
     const flaggedHtml = (b.flagged > 0)
       ? `<span class="rate-pill ${b.flagged >= 3 ? "bad" : "warn"}">${b.flagged}</span>`
@@ -1034,6 +1103,10 @@ function renderPortfolio(){
   const p = SNAP.portfolio;
   const rrCls = rateClass(p.returnRate, t);
   const ratingCls = ratingClass(p.avgRating, t);
+
+  // §11 — Recompute brand classifications live from current thresholds.
+  // Rates are build-time facts; health/flagged/sort are recomputed each render.
+  const liveBrands = computeBrands(SNAP, t);
 
   // Recompute every store live from its raw kpis + effective thresholds (§6.1):
   // health (nodata preserved) + flagged count. Portfolio flagged = Σ of these.
@@ -1094,22 +1167,22 @@ function renderPortfolio(){
       <div class="health-tag ${p.returnRate >= t.returnRate ? "bad" : (flaggedTotal > 0 ? "warn" : "good")}">Portfolio</div>
     </div>
 
-    ${verdictHeader(p, t)}
+    ${verdictHeader(p, t, liveBrands)}
 
     <div class="kpis">${kpis}</div>
 
     ${renderTabBar()}
 
     <div class="tab-panel${activeTab === "briefing" ? " active" : ""}" data-panel="briefing" data-testid="panel-briefing">
-      ${briefingPanel(p, t)}
+      ${briefingPanel(p, t, liveBrands)}
     </div>
 
     <div class="tab-panel${activeTab === "brands" ? " active" : ""}" data-panel="brands" data-testid="panel-brands">
-      ${brandsPanel(p, t)}
+      ${brandsPanel(p, t, liveBrands)}
     </div>
 
     <div class="tab-panel${activeTab === "rank" ? " active" : ""}" data-panel="rank" data-testid="panel-rank">
-      ${rankingsPanel(p, t, lbRows)}
+      ${rankingsPanel(p, t, lbRows, liveBrands)}
     </div>`;
 
   // Clicking a leaderboard row (store grouping) selects that store.
