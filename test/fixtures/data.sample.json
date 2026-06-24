@@ -10,7 +10,8 @@
     "refundSpike": 25,
     "ratingBad": 3.5,
     "ratingWarn": 4,
-    "ratingDrop": -0.2
+    "ratingDrop": -0.2,
+    "ratingRise": 0.1
   },
   "portfolio": {
     "returnRate": 1.8365662401981016,
@@ -18,6 +19,7 @@
     "refundExposure": 2064.87,
     "flaggedCount": 3,
     "avgRating": 4.142589366176028,
+    "ratingDelta": 0,
     "storeCount": 9,
     "trend": [
       2.8391167192429023,
@@ -129,7 +131,114 @@
         "avgRating": null,
         "flagged": 0
       }
-    ]
+    ],
+    "brands": [
+      {
+        "id": "unbranded",
+        "name": "Unbranded",
+        "health": "good",
+        "rating": null,
+        "ratingDelta": null,
+        "returnRate": 2.0397489539748954,
+        "refundSpike": -35.292102811421024,
+        "refundExposure": 1889.16,
+        "flagged": 3,
+        "trend": [
+          1.7391304347826086,
+          null,
+          null,
+          3.826530612244898,
+          2.1541010770505387,
+          3.4682080924855487,
+          1.9940179461615155,
+          1.4285714285714286,
+          2.7196652719665275,
+          2.200825309491059,
+          1.6216216216216217,
+          2.109704641350211
+        ]
+      },
+      {
+        "id": "treeactiv",
+        "name": "TreeActiv",
+        "health": "good",
+        "rating": 4.1,
+        "ratingDelta": 0,
+        "returnRate": 1.7857142857142856,
+        "refundSpike": null,
+        "refundExposure": 39.9,
+        "flagged": 0,
+        "trend": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          0,
+          0,
+          0,
+          9.523809523809524
+        ]
+      },
+      {
+        "id": "natrisweet",
+        "name": "NatriSweet",
+        "health": "good",
+        "rating": 4.1,
+        "ratingDelta": 0,
+        "returnRate": 1.0135135135135136,
+        "refundSpike": -52.477430191056065,
+        "refundExposure": 135.81,
+        "flagged": 0,
+        "trend": [
+          5.747126436781609,
+          null,
+          null,
+          2.8169014084507045,
+          7.246376811594203,
+          null,
+          1.6706443914081146,
+          2.857142857142857,
+          0.9708737864077669,
+          0.8595988538681949,
+          0.8968609865470852,
+          1.4084507042253522
+        ]
+      },
+      {
+        "id": "teaki-hut",
+        "name": "Teaki Hut",
+        "health": "good",
+        "rating": 4.4,
+        "ratingDelta": 0,
+        "returnRate": 0,
+        "refundSpike": null,
+        "refundExposure": 0,
+        "flagged": 0,
+        "trend": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          0,
+          null
+        ]
+      }
+    ],
+    "verdict": {
+      "state": "stable",
+      "ratingDelta": 0,
+      "decliningBrands": 0
+    }
   },
   "stores": [
     {

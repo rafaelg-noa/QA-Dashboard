@@ -103,6 +103,34 @@ test("ASIN with null returnRate is valid (null means no data)", () => {
   assert.equal(validate(good).ok, true);
 });
 
+// ── Portfolio new fields (verdict, ratingDelta, brands) ──────────────────────
+
+test("missing portfolio.verdict fails", () => {
+  const bad = structuredClone(good);
+  delete bad.portfolio.verdict;
+  assert.equal(validate(bad).ok, false);
+});
+test("missing portfolio.brands fails", () => {
+  const bad = structuredClone(good);
+  delete bad.portfolio.brands;
+  assert.equal(validate(bad).ok, false);
+});
+test("missing portfolio.ratingDelta fails", () => {
+  const bad = structuredClone(good);
+  delete bad.portfolio.ratingDelta;
+  assert.equal(validate(bad).ok, false);
+});
+test("missing thresholds.ratingRise fails", () => {
+  const bad = structuredClone(good);
+  delete bad.thresholds.ratingRise;
+  assert.equal(validate(bad).ok, false);
+});
+test("a brand entry missing health fails", () => {
+  const bad = structuredClone(good);
+  delete bad.portfolio.brands[0].health;
+  assert.equal(validate(bad).ok, false);
+});
+
 // ── errors array when invalid ─────────────────────────────────────────────────
 
 test("errors is empty array when valid", () => {
