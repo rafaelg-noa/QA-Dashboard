@@ -398,6 +398,60 @@
   /* ---- Rankings table sparkline ---- */
   .spark { display: inline-flex; gap: 1px; align-items: flex-end; height: 14px; vertical-align: middle; }
   .spark span { width: 3px; border-radius: 1px; background: var(--accent); opacity: .7; }
+
+  /* ---- Brand detail drawer ---- */
+  .detail-scrim {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200;
+    opacity: 0; visibility: hidden; transition: opacity .16s ease;
+  }
+  .detail-scrim.open { opacity: 1; visibility: visible; }
+  .detail-drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; width: 420px; max-width: 95vw;
+    background: var(--panel); border-left: 1px solid var(--line); z-index: 201;
+    transform: translateX(100%); transition: transform .2s ease;
+    display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(0,0,0,.45);
+  }
+  .detail-drawer.open { transform: translateX(0); }
+  .detail-head { display: flex; align-items: center; gap: 10px; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
+  .detail-head h2 { font-size: 15px; letter-spacing: .2px; flex: 1; }
+  .detail-head .detail-kind { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .6px; }
+  .detail-head .x {
+    background: transparent; border: 1px solid var(--line); color: var(--ink-dim);
+    width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 16px; line-height: 1;
+  }
+  .detail-head .x:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .detail-body { padding: 16px 20px 22px; overflow-y: auto; flex: 1; }
+  .detail-mini-trend { margin: 0 0 16px; }
+  .detail-mini-trend h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--ink-faint); margin-bottom: 6px; }
+  .detail-asin-list { display: flex; flex-direction: column; gap: 8px; }
+  .detail-asin {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .detail-asin-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .detail-asin-code { font-size: 11px; color: var(--ink-faint); font-family: ui-monospace, monospace; margin-bottom: 6px; }
+  .detail-asin-metrics { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; }
+  .detail-asin-metrics .dm { display: flex; flex-direction: column; gap: 1px; }
+  .detail-asin-metrics .dm-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-faint); }
+  .detail-asin-metrics .dm-val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .detail-flags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .flag-pill {
+    font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600;
+    letter-spacing: .3px; text-transform: uppercase; border: 1px solid;
+    color: var(--bad); background: var(--bad-bg); border-color: rgba(248,81,73,.3);
+  }
+  .flag-pill.warn { color: var(--warn); background: var(--warn-bg); border-color: rgba(210,153,34,.3); }
+
+  /* ---- Warehouse QA disabled tab ---- */
+  .tab-btn.disabled {
+    opacity: .45; cursor: not-allowed; pointer-events: none;
+  }
+  .tab-btn .soon-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px;
+    border-radius: 4px; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--ink-faint); letter-spacing: .3px; text-transform: uppercase;
+    margin-left: 5px; vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -437,6 +491,19 @@
     <!-- rendered by render() -->
   </main>
 </div>
+
+<!-- Brand / store detail drawer (Task 12) — distinct from the settings #drawer -->
+<div class="detail-scrim" id="detailScrim"></div>
+<aside class="detail-drawer" id="detailDrawer" data-testid="drawer" role="dialog" aria-modal="true" aria-label="Brand / store detail" aria-hidden="true">
+  <div class="detail-head">
+    <div>
+      <div class="detail-kind" id="detailKind"></div>
+      <h2 id="detailTitle"></h2>
+    </div>
+    <button class="x" id="detailClose" aria-label="Close detail">×</button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</aside>
 
 <!-- Settings drawer (personal threshold overrides, localStorage) -->
 <div class="drawer-scrim" id="drawerScrim"></div>
@@ -850,9 +917,11 @@ function renderTabBar(){
     { id: "brands",   label: "Brands" },
     { id: "rank",     label: "Rankings" }
   ];
+  const warehouseTab = `<button class="tab-btn disabled" data-testid="warehouse-placeholder" disabled aria-disabled="true" tabindex="-1">Warehouse QA<span class="soon-badge">Phase 2</span></button>`;
   return `
     <div class="tab-bar">
       ${tabs.map(t => `<button class="tab-btn${activeTab === t.id ? " active" : ""}" data-testid="tab-${t.id}" data-tab="${t.id}">${t.label}</button>`).join("")}
+      ${warehouseTab}
     </div>`;
 }
 
@@ -1141,9 +1210,9 @@ function renderPortfolio(){
 
   // Leaderboard: re-sort worst-health-first (bad<warn<good<nodata; tie-break
   // returnRate desc, nulls last) — do NOT trust the shipped order/health (§6.1).
-  const RANK = { bad: 0, warn: 1, good: 2, nodata: 3 };
+  // Uses module-scope HEALTH_RANK (no local duplicate).
   const leaderboard = liveStores.slice().sort((a, b) => {
-    const r = RANK[a.health] - RANK[b.health];
+    const r = HEALTH_RANK[a.health] - HEALTH_RANK[b.health];
     if (r !== 0) return r;
     const ar = a.returnRate == null ? -Infinity : a.returnRate;
     const br = b.returnRate == null ? -Infinity : b.returnRate;
@@ -1185,9 +1254,19 @@ function renderPortfolio(){
       ${rankingsPanel(p, t, lbRows, liveBrands)}
     </div>`;
 
-  // Clicking a leaderboard row (store grouping) selects that store.
-  document.querySelectorAll("#lbBody tr").forEach(tr =>
-    tr.onclick = () => { activeView = tr.dataset.id; render(); });
+  // Clicking a rank-row: brand rows open the detail drawer; store rows navigate.
+  document.querySelectorAll('[data-testid="rank-row"]').forEach(tr => {
+    tr.onclick = () => {
+      const kind = tr.dataset.kind;
+      const id   = tr.dataset.id;
+      if (kind === "brand"){
+        openDetailDrawer(id, "brand");
+      } else {
+        // store rows: open detail drawer too (drawer works for both kinds)
+        openDetailDrawer(id, "store");
+      }
+    };
+  });
   // Group-by toggle buttons in Rankings panel.
   document.querySelectorAll(".groupby-btn[data-testid]").forEach(btn => {
     btn.onclick = () => {
@@ -1457,6 +1536,119 @@ async function refetch(){
   }
 }
 
+// ====================================================================
+// Brand / store detail drawer (Task 12)
+// ====================================================================
+
+// Render a compact SVG mini-trend (reuses trendSvg() at smaller scale).
+function miniSparkSvg(trend){
+  if (!trend || !trend.length) return "";
+  const present = trend.filter(v => v != null && isFinite(v));
+  if (!present.length) return "";
+  const max = Math.max(...present);
+  const bars = trend.map(v => {
+    const h = (v != null && isFinite(v) && max > 0) ? Math.max(2, Math.round((v / max) * 28)) : 2;
+    const opacity = (v != null && isFinite(v)) ? 1 : 0.25;
+    return `<span style="height:${h}px;opacity:${opacity}"></span>`;
+  }).join("");
+  return `<span class="spark" style="height:28px;" title="12-wk return rate trend">${bars}</span>`;
+}
+
+function flagPillsHtml(flags){
+  if (!flags || !flags.length) return "";
+  const FLAG_LABEL = { return: "return", refund: "refund", ratingDrop: "rating drop" };
+  const FLAG_CLASS = { return: "", refund: "", ratingDrop: "warn" };
+  return flags.map(f => {
+    const lbl = FLAG_LABEL[f] || f;
+    const cls = FLAG_CLASS[f] || "";
+    return `<span class="flag-pill${cls ? " " + cls : ""}">${esc(lbl)}</span>`;
+  }).join("");
+}
+
+function detailAsinHtml(a, t){
+  const title = a.title || a.asin;
+  const flagHtml = flagPillsHtml(a.flags);
+  const rrCls = rateClass(a.returnRate, t);
+  return `
+    <div class="detail-asin" data-testid="drawer-asin">
+      <div class="detail-asin-title" title="${esc(a.title || a.asin)}">${esc(title)}</div>
+      ${a.title ? `<div class="detail-asin-code">${esc(a.asin)}</div>` : ""}
+      <div class="detail-asin-metrics">
+        <div class="dm">
+          <span class="dm-lbl">Return rate</span>
+          <span class="dm-val mono"><span class="rate-pill ${rrCls}" style="font-size:11px">${fmtPct(a.returnRate)}</span></span>
+        </div>
+        <div class="dm">
+          <span class="dm-lbl">Rating</span>
+          <span class="dm-val mono">${fmtRating(a.reviewRating) !== "n/a" ? fmtRating(a.reviewRating) + "<small>/5</small>" : "n/a"}</span>
+        </div>
+        <div class="dm">
+          <span class="dm-lbl">Refund spike</span>
+          <span class="dm-val mono">${fmtSpike(a.refundSpike)}</span>
+        </div>
+      </div>
+      ${flagHtml ? `<div class="detail-flags">${flagHtml}</div>` : ""}
+    </div>`;
+}
+
+function openDetailDrawer(id, kind){
+  if (!SNAP) return;
+  const t = effective();
+  const drawer = document.getElementById("detailDrawer");
+  const titleEl = document.getElementById("detailTitle");
+  const kindEl  = document.getElementById("detailKind");
+  const bodyEl  = document.getElementById("detailBody");
+
+  let name = id;
+  let asins = [];
+  let trend = null;
+
+  if (kind === "brand"){
+    // Find brand in the live-computed brands (portfolio.brands is source of truth for name).
+    const lb = computeBrands(SNAP, t);
+    const brandEntry = lb.find(b => b.id === id);
+    name = brandEntry ? brandEntry.name : id;
+    // Collect ASINs across all stores matching this brand name.
+    asins = SNAP.stores.flatMap(s => s.asins).filter(a => (a.brand ?? "Unbranded") === name);
+    trend = brandEntry ? brandEntry.trend : null;
+  } else {
+    // kind === "store"
+    const store = SNAP.stores.find(s => s.id === id);
+    if (!store){ return; }
+    name = store.name;
+    asins = store.asins || [];
+    trend = store.trend || null;
+  }
+
+  titleEl.textContent = name;
+  kindEl.textContent = kind === "brand" ? "Brand detail" : "Store detail";
+
+  const trendSection = trend
+    ? `<div class="detail-mini-trend">
+        <h3>12-wk return rate trend</h3>
+        ${miniSparkSvg(trend)}
+       </div>`
+    : "";
+
+  const asinItems = asins.map(a => detailAsinHtml(a, t)).join("");
+  const asinSection = asins.length
+    ? `<div class="detail-asin-list">${asinItems}</div>`
+    : `<div class="empty" style="padding:24px 0">No ASINs found</div>`;
+
+  bodyEl.innerHTML = trendSection + asinSection;
+
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden", "false");
+  document.getElementById("detailScrim").classList.add("open");
+}
+
+function closeDetailDrawer(){
+  const drawer = document.getElementById("detailDrawer");
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden", "true");
+  document.getElementById("detailScrim").classList.remove("open");
+}
+
 // ---------- Wire chrome (runs once, even on the error path) ----------
 function wireChrome(){
   document.getElementById("settingsBtn").onclick = openDrawer;
@@ -1468,7 +1660,10 @@ function wireChrome(){
     renderThresholdInputs();             // clear override highlights + reset values
     render();                            // back to shipped classification
   };
-  document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeDetailDrawer(); } });
+  // Detail drawer close controls
+  document.getElementById("detailClose").onclick = closeDetailDrawer;
+  document.getElementById("detailScrim").onclick = closeDetailDrawer;
   updateSyncBar();
   setInterval(updateSyncBar, 60000);     // live countdown, every 60s
 }

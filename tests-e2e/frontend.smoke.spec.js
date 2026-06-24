@@ -280,3 +280,20 @@ test("tightening ratingDrop re-derives verdict WITHOUT an extra data.json fetch"
   // verdict still renders a valid state after recompute
   await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
 });
+
+// --------------------------------------------------------------------------
+// Task 12: Brand detail drawer + Warehouse placeholder
+// --------------------------------------------------------------------------
+test("clicking a ranking row opens the detail drawer with that brand's ASINs", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-testid="tab-rank"]').click();
+  await page.locator('[data-testid="rank-row"]').first().click();
+  await expect(page.locator('[data-testid="drawer"]')).toBeVisible();
+  await expect(page.locator('[data-testid="drawer-asin"]').first()).toBeVisible();
+});
+
+test("warehouse QA placeholder is present and inert", async ({ page }) => {
+  await page.goto("/");
+  const ph = page.locator('[data-testid="warehouse-placeholder"]');
+  await expect(ph).toBeVisible();
+});
