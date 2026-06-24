@@ -311,6 +311,55 @@
   .callout-signals .sig.bad  { color: var(--bad); }
   .callout-signals .sig.warn { color: var(--warn); }
 
+  /* ---- Brands cockpit grid (Task 9) ---- */
+  .brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .brand-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; position: relative; cursor: default;
+    transition: box-shadow .12s;
+  }
+  .brand-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.35); }
+  /* left accent bar coloured by health */
+  .brand-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 10px 0 0 10px;
+    background: var(--ink-faint);
+  }
+  .brand-card.good::before   { background: var(--good); }
+  .brand-card.warn::before   { background: var(--warn); }
+  .brand-card.bad::before    { background: var(--bad); }
+  .brand-card.nodata::before { background: var(--ink-faint); opacity: .5; }
+  /* card name row */
+  .bc-name {
+    font-size: 14px; font-weight: 600; margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  /* small health pill inside each card */
+  .bc-pill {
+    font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600;
+    letter-spacing: .3px; text-transform: uppercase; border: 1px solid; flex-shrink: 0;
+  }
+  .bc-pill.good   { color: var(--good); background: var(--good-bg); border-color: rgba(63,185,80,.3); }
+  .bc-pill.warn   { color: var(--warn); background: var(--warn-bg); border-color: rgba(210,153,34,.3); }
+  .bc-pill.bad    { color: var(--bad);  background: var(--bad-bg);  border-color: rgba(248,81,73,.3); }
+  .bc-pill.nodata { color: var(--ink-dim); background: var(--panel-2); border-color: var(--line); }
+  /* metric rows inside each card */
+  .bc-metrics { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+  .bc-row { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; }
+  .bc-row .bc-lbl { color: var(--ink-dim); }
+  .bc-row .bc-val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .bc-row .bc-traj { font-size: 11px; margin-left: 4px; }
+  /* spike warning row (shown for non-good brands) */
+  .bc-spike { margin-top: 6px; font-size: 11px; color: var(--warn); }
+  .bc-spike.bad { color: var(--bad); }
+  /* nodata dimming */
+  .brand-card.nodata .bc-metrics { opacity: .55; }
+
   @media (max-width: 900px) {
     .shell { flex-direction: column; }
     .rail { width: 100%; height: auto; position: static; flex-direction: column; }
@@ -321,6 +370,7 @@
     .main { padding: 18px 16px 50px; }
     .verdict-kpis { gap: 12px; }
     .verdict-summary { text-align: left; }
+    .brand-grid { grid-template-columns: 1fr 1fr; }
   }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
@@ -806,6 +856,75 @@ function briefingPanel(p, t, lbRows){
 }
 
 // ====================================================================
+// Brands cockpit panel (Task 9) — one card per portfolio.brands[] entry
+// ALL brands including nodata; preserves generator sort (worst first).
+// ====================================================================
+function brandCardHtml(b, t){
+  const health = b.health || "nodata";
+
+  // Rating + trajectory
+  let ratingVal = "n/a";
+  let trajHtml  = "";
+  if (b.rating != null && isFinite(b.rating)){
+    ratingVal = fmtRating(b.rating);
+  }
+  if (b.ratingDelta != null && isFinite(b.ratingDelta) && Math.abs(b.ratingDelta) >= 0.05){
+    const up = b.ratingDelta > 0;
+    const cls = up ? "down-good" : "up-bad";   // up=good for rating
+    const arrow = up ? "▲" : "▼";
+    trajHtml = `<span class="bc-traj ${cls}">${arrow}${Math.abs(b.ratingDelta).toFixed(2)}</span>`;
+  } else if (b.rating != null) {
+    trajHtml = `<span class="bc-traj flat">—</span>`;
+  }
+
+  // Refund spike: show for bad/warn health OR when refundSpike > 0
+  const showSpike = health !== "good" && health !== "nodata"
+    || (b.refundSpike != null && isFinite(b.refundSpike) && b.refundSpike > 0);
+  const spikeCls = (t && b.refundSpike != null && b.refundSpike > t.refundSpike) ? "bad" : "";
+  const spikeHtml = (showSpike && b.refundSpike != null && isFinite(b.refundSpike))
+    ? `<div class="bc-spike${spikeCls ? " " + spikeCls : ""}">refund spike ${fmtSpike(b.refundSpike)}</div>`
+    : "";
+
+  const pillLabel = health === "good" ? "OK"
+    : health === "warn" ? "Watch"
+    : health === "bad"  ? "Alert"
+    : "No data";
+
+  return `
+    <div class="brand-card ${health}" data-testid="brand-card" data-brand="${esc(b.id)}">
+      <div class="bc-name">
+        ${esc(b.name)}
+        <span class="bc-pill ${health}">${pillLabel}</span>
+      </div>
+      <div class="bc-metrics">
+        <div class="bc-row">
+          <span class="bc-lbl">Rating</span>
+          <span class="bc-val mono">${ratingVal}${trajHtml ? `<small> / 5</small>` : ""} ${trajHtml}</span>
+        </div>
+        <div class="bc-row">
+          <span class="bc-lbl">Return rate</span>
+          <span class="bc-val mono">${fmtPct(b.returnRate)}</span>
+        </div>
+      </div>
+      ${spikeHtml}
+    </div>`;
+}
+
+function brandsPanel(p, t){
+  const brands = p.brands || [];
+  if (brands.length === 0){
+    return `<div class="empty" style="padding:40px 0;font-size:14px">No brand data available</div>`;
+  }
+  const cards = brands.map(b => brandCardHtml(b, t)).join("");
+  return `
+    <div class="card" style="margin-top:0;border:none;background:transparent;padding:0;">
+      <h3 style="font-size:13px;padding:0 0 4px;">All brands<span class="meta">${brands.length} brands · worst first</span></h3>
+      <div class="brand-grid">${cards}</div>
+    </div>
+    ${footnote()}`;
+}
+
+// ====================================================================
 // ALL-STORES portfolio view
 // ====================================================================
 function renderPortfolio(){
@@ -884,7 +1003,7 @@ function renderPortfolio(){
     </div>
 
     <div class="tab-panel${activeTab === "brands" ? " active" : ""}" data-panel="brands" data-testid="panel-brands">
-      <div class="empty" style="padding:40px 0;font-size:14px">Brands panel — coming in Task 9</div>
+      ${brandsPanel(p, t)}
     </div>
 
     <div class="tab-panel${activeTab === "rank" ? " active" : ""}" data-panel="rank" data-testid="panel-rank">

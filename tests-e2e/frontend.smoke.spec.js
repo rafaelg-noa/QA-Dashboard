@@ -228,3 +228,16 @@ test("briefing lists callouts derived from brand health (no nodata callouts)", a
   // every callout names a brand and carries a bucket pill
   await expect(page.locator('[data-testid="callout-bucket"]').first()).toBeVisible();
 });
+
+// --------------------------------------------------------------------------
+// Task 9: Brands tab — all-brands cockpit grid
+// --------------------------------------------------------------------------
+test("brands tab shows one health-colored card per brand", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-testid="tab-brands"]').click();
+  const cards = page.locator('[data-testid="brand-card"]');
+  await expect(cards.first()).toBeVisible();
+  // count matches portfolio.brands length from the served data.json
+  const data = await page.evaluate(() => fetch("/data.json").then(r => r.json()));
+  await expect(cards).toHaveCount(data.portfolio.brands.length);
+});
