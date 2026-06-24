@@ -354,6 +354,9 @@
   .bc-row .bc-lbl { color: var(--ink-dim); }
   .bc-row .bc-val { font-variant-numeric: tabular-nums; font-weight: 600; }
   .bc-row .bc-traj { font-size: 11px; margin-left: 4px; }
+  .bc-traj.up-bad    { color: var(--bad); }
+  .bc-traj.down-good { color: var(--good); }
+  .bc-traj.flat      { color: var(--ink-faint); }
   /* spike warning row (shown for non-good brands) */
   .bc-spike { margin-top: 6px; font-size: 11px; color: var(--warn); }
   .bc-spike.bad { color: var(--bad); }
@@ -877,9 +880,8 @@ function brandCardHtml(b, t){
     trajHtml = `<span class="bc-traj flat">—</span>`;
   }
 
-  // Refund spike: show for bad/warn health OR when refundSpike > 0
-  const showSpike = health !== "good" && health !== "nodata"
-    || (b.refundSpike != null && isFinite(b.refundSpike) && b.refundSpike > 0);
+  // Refund spike: show only for bad/warn health (never for good or nodata).
+  const showSpike = health === "bad" || health === "warn";
   const spikeCls = (t && b.refundSpike != null && b.refundSpike > t.refundSpike) ? "bad" : "";
   const spikeHtml = (showSpike && b.refundSpike != null && isFinite(b.refundSpike))
     ? `<div class="bc-spike${spikeCls ? " " + spikeCls : ""}">refund spike ${fmtSpike(b.refundSpike)}</div>`
@@ -899,7 +901,7 @@ function brandCardHtml(b, t){
       <div class="bc-metrics">
         <div class="bc-row">
           <span class="bc-lbl">Rating</span>
-          <span class="bc-val mono">${ratingVal}${trajHtml ? `<small> / 5</small>` : ""} ${trajHtml}</span>
+          <span class="bc-val mono">${ratingVal}${b.rating != null ? `<small> / 5</small>` : ""} ${trajHtml}</span>
         </div>
         <div class="bc-row">
           <span class="bc-lbl">Return rate</span>
