@@ -5,7 +5,8 @@
     "refundSpike": 25,
     "ratingBad": 3.5,
     "ratingWarn": 4.0,
-    "ratingDrop": -0.2
+    "ratingDrop": -0.2,
+    "ratingRise": 0.1
   },
   "windows": {
     "windowDays": 30,

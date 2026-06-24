@@ -57,15 +57,15 @@ function storeAsins(accountId) {
 
 // ── Snapshot envelope ─────────────────────────────────────────────────────────
 
-test("envelope: generatedAt, refreshIntervalHours default 6, window.days, thresholds (all 6)", () => {
+test("envelope: generatedAt, refreshIntervalHours default 6, window.days, thresholds (all 7)", () => {
   const snap = build();
   assert.equal(snap.generatedAt, GENERATED_AT);
   assert.equal(snap.refreshIntervalHours, 6);
   assert.equal(snap.window.days, 30);
-  // thresholds block is exactly the 6 classification values, equal to config
+  // thresholds block is exactly the 7 classification values, equal to config
   assert.deepEqual(snap.thresholds, cfg.classification);
-  assert.equal(Object.keys(snap.thresholds).length, 6);
-  for (const k of ["returnRate", "returnRateWarn", "refundSpike", "ratingBad", "ratingWarn", "ratingDrop"]) {
+  assert.equal(Object.keys(snap.thresholds).length, 7);
+  for (const k of ["returnRate", "returnRateWarn", "refundSpike", "ratingBad", "ratingWarn", "ratingDrop", "ratingRise"]) {
     assert.ok(k in snap.thresholds, `thresholds.${k} present`);
   }
 });
