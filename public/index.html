@@ -785,7 +785,7 @@ function renderStoreList(){
     <button class="store-btn pinned ${allActive ? "active" : ""}" data-id="all">
       <span class="pip" style="background:var(--accent)"></span>
       <span class="nm">All Stores</span>
-      <span class="ct">${STORES.length}</span>
+      <span class="ct">${STORES.reduce((n, s) => n + s.asins.length, 0)}</span>
     </button>`;
   const rows = STORES.map(s => `
     <button class="store-btn ${s.id === activeView ? "active" : ""}" data-id="${esc(s.id)}">
