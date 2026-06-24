@@ -55,6 +55,11 @@ function storeAsins(accountId) {
   return Object.values(pma).filter((a) => a.accountId === accountId);
 }
 
+/** Helper: independent brand grouping straight from fixtures. */
+function brandAsins(brandName) {
+  return Object.values(pma).filter((a) => (ratings[a.asin]?.brand ?? "Unbranded") === brandName);
+}
+
 // ── Snapshot envelope ─────────────────────────────────────────────────────────
 
 test("envelope: generatedAt, refreshIntervalHours default 6, window.days, thresholds (all 7)", () => {
@@ -356,4 +361,53 @@ test("leaderboard health-rank dominates returnRate tie-break (nodata sorts after
   for (let i = 0; i < firstNodataIdx; i++) assert.notEqual(lb[i].health, "nodata");
   // every entry from there on is nodata
   for (let i = firstNodataIdx; i < lb.length; i++) assert.equal(lb[i].health, "nodata");
+});
+
+// ── portfolio.brands[] ────────────────────────────────────────────────────────
+
+test("portfolio.brands: one entry per distinct brand present (+ Unbranded if any null-brand ASIN)", () => {
+  const snap = build();
+  const names = new Set(snap.portfolio.brands.map((b) => b.name));
+  const expected = new Set(
+    Object.values(pma).map((a) => ratings[a.asin]?.brand ?? "Unbranded")
+  );
+  assert.deepEqual(names, expected);
+});
+
+test("portfolio.brands: ratio-of-sums returnRate for a known brand", () => {
+  const snap = build();
+  // Pick the first brand that has sales in window.
+  const brand = snap.portfolio.brands.find((b) => b.health !== "nodata");
+  const aggs = brandAsins(brand.name);
+  const sold = aggs.reduce((n, a) => n + a.unitsSoldWindow, 0);
+  const ret = aggs.reduce((n, a) => n + a.unitsReturnedWindow, 0);
+  const expected = sold === 0 ? null : (ret / sold) * 100;
+  close(brand.returnRate, expected, 1e-6, `brand ${brand.name} returnRate`);
+});
+
+test("portfolio.brands: refundExposure = round(Σ refundLast)", () => {
+  const snap = build();
+  const brand = snap.portfolio.brands.find((b) => b.health !== "nodata");
+  const aggs = brandAsins(brand.name);
+  const expected = Math.round(aggs.reduce((n, a) => n + a.refundLast, 0) * 100) / 100;
+  close(brand.refundExposure, expected, 1e-6, `brand ${brand.name} refundExposure`);
+});
+
+test("portfolio.brands: sorted worst-health-first", () => {
+  const snap = build();
+  const RANK = { bad: 0, warn: 1, good: 2, nodata: 3 };
+  const ranks = snap.portfolio.brands.map((b) => RANK[b.health]);
+  for (let i = 1; i < ranks.length; i++) {
+    assert.ok(ranks[i] >= ranks[i - 1], "brands not in worst-first health order");
+  }
+});
+
+test("portfolio.brands: each entry has the §5.3 shape", () => {
+  const snap = build();
+  for (const b of snap.portfolio.brands) {
+    for (const k of ["id", "name", "health", "rating", "ratingDelta", "returnRate", "refundSpike", "refundExposure", "flagged", "trend"]) {
+      assert.ok(k in b, `brand entry missing ${k}`);
+    }
+    assert.equal(b.trend.length, 12);
+  }
 });
