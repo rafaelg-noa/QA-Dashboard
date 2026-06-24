@@ -196,3 +196,24 @@ test.describe("QA Dashboard frontend smoke", () => {
     await expect(noDataTag).toHaveText("No data");
   });
 });
+
+// --------------------------------------------------------------------------
+// Task 7: Pinned verdict header + tab scaffold
+// --------------------------------------------------------------------------
+test("renders pinned verdict header with state + portfolio KPIs", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
+  await expect(page.locator('[data-testid="kpi-rating"]')).toBeVisible();
+  await expect(page.locator('[data-testid="kpi-returnrate"]')).toBeVisible();
+  await expect(page.locator('[data-testid="kpi-refundexposure"]')).toBeVisible();
+  // Reuse the EXISTING flagged KPI testid — do not rename it (Phase 1 smoke depends on it).
+  await expect(page.locator('[data-testid="flagged-kpi-val"]')).toBeVisible();
+});
+
+test("has three tabs; clicking switches the active panel", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('[data-testid="tab-briefing"]')).toHaveClass(/active/);
+  await page.locator('[data-testid="tab-brands"]').click();
+  await expect(page.locator('[data-testid="panel-brands"]')).toBeVisible();
+  await expect(page.locator('[data-testid="panel-briefing"]')).toBeHidden();
+});

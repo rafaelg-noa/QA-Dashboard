@@ -245,6 +245,50 @@
   .drawer-reset:hover { background: var(--bad-bg); border-color: rgba(248,81,73,.4); color: var(--bad); }
   .drawer-foot { font-size: 11px; color: var(--ink-faint); margin-top: 14px; line-height: 1.5; }
 
+  /* ---- Verdict header (pinned, portfolio-only) ---- */
+  .verdict-header {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 18px; margin-bottom: 16px;
+  }
+  .verdict-state {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
+  }
+  .verdict-glyph {
+    font-size: 18px; line-height: 1; font-style: normal;
+  }
+  .verdict-glyph.improving { color: var(--good); }
+  .verdict-glyph.stable    { color: var(--warn); }
+  .verdict-glyph.slipping  { color: var(--bad); }
+  .verdict-label.improving { color: var(--good); }
+  .verdict-label.stable    { color: var(--warn); }
+  .verdict-label.slipping  { color: var(--bad); }
+  .verdict-divider { width: 1px; height: 24px; background: var(--line); flex-shrink: 0; }
+  .verdict-kpis { display: flex; gap: 20px; flex-wrap: wrap; }
+  .verdict-kpi { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
+  .verdict-kpi .vk-lbl { font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .5px; }
+  .verdict-kpi .vk-val { font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .verdict-summary { flex: 1; font-size: 12px; color: var(--ink-dim); text-align: right; min-width: 140px; }
+
+  /* ---- Tab bar ---- */
+  .tab-bar {
+    display: flex; gap: 2px; border-bottom: 1px solid var(--line);
+    margin-bottom: 16px; margin-top: 4px;
+  }
+  .tab-btn {
+    background: transparent; border: none; color: var(--ink-dim);
+    padding: 9px 14px; font-size: 13px; cursor: pointer; position: relative;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    border-radius: 6px 6px 0 0;
+    transition: color .12s, background .12s;
+  }
+  .tab-btn:hover { color: var(--ink); background: var(--panel-2); }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+
+  /* ---- Tab panels ---- */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
   @media (max-width: 900px) {
     .shell { flex-direction: column; }
     .rail { width: 100%; height: auto; position: static; flex-direction: column; }
@@ -253,6 +297,8 @@
     .grid { grid-template-columns: 1fr; }
     .kpis { grid-template-columns: 1fr 1fr; }
     .main { padding: 18px 16px 50px; }
+    .verdict-kpis { gap: 12px; }
+    .verdict-summary { text-align: left; }
   }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
@@ -311,7 +357,7 @@
 </aside>
 
 <script type="module">
-import { storeHealth, asinFlags, isFlagged, rateClass, ratingClass, flaggedCount, DEFAULT_THRESHOLDS } from "./shared/classify.js";
+import { storeHealth, asinFlags, isFlagged, rateClass, ratingClass, flaggedCount, portfolioVerdict, DEFAULT_THRESHOLDS } from "./shared/classify.js";
 
 // ---------- Load live snapshot ----------
 let SNAP, STORES;
@@ -588,6 +634,69 @@ function kpiCard(c, alignLeft){
 }
 
 // ====================================================================
+// Verdict header helpers
+// ====================================================================
+const VERDICT_GLYPH = { improving: "↑", stable: "—", slipping: "↓" };
+const VERDICT_LABEL = { improving: "Improving", stable: "Stable", slipping: "Slipping" };
+
+function verdictHeader(p, t){
+  // Derive state via portfolioVerdict so Task 11 can route live thresholds through it.
+  const state = portfolioVerdict({ ratingDelta: p.verdict.ratingDelta, decliningBrands: p.verdict.decliningBrands }, t);
+  const glyph = VERDICT_GLYPH[state] || "—";
+  const label = VERDICT_LABEL[state] || state;
+  const ratingDeltaSign = (p.ratingDelta > 0 ? "+" : "") + fmtRating(p.ratingDelta);
+  const summary = `${activeStoreCount()} of ${STORES.length} stores · last synced ${relTime(SNAP.generatedAt)}`;
+  return `
+    <div class="verdict-header">
+      <div class="verdict-state" data-testid="verdict-state">
+        <i class="verdict-glyph ${state}">${glyph}</i>
+        <span class="verdict-label ${state}">${label}</span>
+      </div>
+      <div class="verdict-divider"></div>
+      <div class="verdict-kpis">
+        <div class="verdict-kpi">
+          <span class="vk-lbl">Rating</span>
+          <span class="vk-val mono">${fmtRating(p.avgRating)}<small style="font-size:11px;color:var(--ink-dim)"> / 5</small></span>
+          <span style="font-size:11px;color:var(--ink-faint)">${ratingDeltaSign} Δ</span>
+        </div>
+      </div>
+      <div class="verdict-summary">${summary}</div>
+    </div>`;
+}
+
+// ====================================================================
+// Tab switching (portfolio view only)
+// ====================================================================
+// activeTab persists across re-renders so threshold changes don't reset the tab.
+let activeTab = "briefing";
+
+function renderTabBar(){
+  const tabs = [
+    { id: "briefing", label: "Briefing" },
+    { id: "brands",   label: "Brands" },
+    { id: "rank",     label: "Rankings" }
+  ];
+  return `
+    <div class="tab-bar">
+      ${tabs.map(t => `<button class="tab-btn${activeTab === t.id ? " active" : ""}" data-testid="tab-${t.id}" data-tab="${t.id}">${t.label}</button>`).join("")}
+    </div>`;
+}
+
+function wireTabBar(){
+  document.querySelectorAll(".tab-btn[data-tab]").forEach(btn => {
+    btn.onclick = () => {
+      activeTab = btn.dataset.tab;
+      // Update active class on buttons
+      document.querySelectorAll(".tab-btn[data-tab]").forEach(b =>
+        b.classList.toggle("active", b.dataset.tab === activeTab));
+      // Show/hide panels
+      document.querySelectorAll(".tab-panel[data-panel]").forEach(p =>
+        p.classList.toggle("active", p.dataset.panel === activeTab));
+    };
+  });
+}
+
+// ====================================================================
 // ALL-STORES portfolio view
 // ====================================================================
 function renderPortfolio(){
@@ -610,19 +719,20 @@ function renderPortfolio(){
 
   // Portfolio return rate / refund exposure / avg rating are raw aggregates and do
   // NOT depend on thresholds (left as shipped); only flags/counts/health do.
+  // testid on .val: kpi-returnrate, kpi-refundexposure, flagged-kpi-val (preserved), kpi-rating
   const kpis = [
     kpiCard({ lbl:"Portfolio return rate", tip:"returnRate", cls:rrCls,
-      val:`${fmtRating(p.returnRate)}<small>%</small>`,
+      val:`${fmtRating(p.returnRate)}<small>%</small>`, testid:"kpi-returnrate",
       delta: deltaTxt(p.returnDelta, "pp", true),
       thresh:`breach at ${thr(t.returnRate)}` }, false),
     kpiCard({ lbl:"Refund exposure", tip:"refundExposure",
-      val:`${fmtMoney(p.refundExposure)}`,
+      val:`${fmtMoney(p.refundExposure)}`, testid:"kpi-refundexposure",
       delta:`<span class="flat">refunded product sales</span>`, thresh:`last ${SNAP.window.days} days` }, false),
     kpiCard({ lbl:"Flagged ASINs", tip:"flagged", cls: flaggedTotal > 0 ? "warn" : "good",
       val:`${fmtNum(flaggedTotal)}`, testid:"flagged-kpi-val",
       delta:`<span class="flat">across ${p.storeCount} stores</span>`, thresh:"threshold breaches" }, true),
     kpiCard({ lbl:"Avg rating", tip:"avgRating", cls:ratingCls,
-      val:`${fmtRating(p.avgRating)}<small> / 5</small>`,
+      val:`${fmtRating(p.avgRating)}<small> / 5</small>`, testid:"kpi-rating",
       delta:`<span class="flat">weighted</span>`, thresh:"units-weighted across stores" }, true)
   ].join("");
 
@@ -671,33 +781,47 @@ function renderPortfolio(){
       <div class="health-tag ${p.returnRate >= t.returnRate ? "bad" : (flaggedTotal > 0 ? "warn" : "good")}">Portfolio</div>
     </div>
 
+    ${verdictHeader(p, t)}
+
     <div class="kpis">${kpis}</div>
 
-    <div class="grid">
-      ${trendCard(p.trend, t.returnRate)}
+    ${renderTabBar()}
 
-      <div class="card">
-        <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
-        <table>
-          <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
-          <tbody id="lbBody">${lbRows}</tbody>
-        </table>
-      </div>
+    <div class="tab-panel${activeTab === "briefing" ? " active" : ""}" data-panel="briefing" data-testid="panel-briefing">
+      <div class="grid">
+        ${trendCard(p.trend, t.returnRate)}
 
-      <div class="card full">
-        <h3>Worst-offending ASINs <span class="info-slot" data-tip="flagged"></span><span class="meta">flagged across all stores · highest return rate first</span></h3>
-        <table>
-          <thead><tr><th>ASIN / Store</th><th>Title</th><th>Return rate</th><th>Refund Δ</th><th>Review rating</th></tr></thead>
-          <tbody>${worstRows || `<tr><td colspan="5" class="empty">No flagged ASINs</td></tr>`}</tbody>
-        </table>
+        <div class="card">
+          <h3>Store leaderboard <span class="info-slot" data-tip="flagged" data-left="1"></span><span class="meta">worst health first</span></h3>
+          <table>
+            <thead><tr><th>Store</th><th>Health</th><th>Return rate</th><th>Refund Δ</th><th>Rating</th><th>Flagged</th></tr></thead>
+            <tbody id="lbBody">${lbRows}</tbody>
+          </table>
+        </div>
+
+        <div class="card full">
+          <h3>Worst-offending ASINs <span class="info-slot" data-tip="flagged"></span><span class="meta">flagged across all stores · highest return rate first</span></h3>
+          <table>
+            <thead><tr><th>ASIN / Store</th><th>Title</th><th>Return rate</th><th>Refund Δ</th><th>Review rating</th></tr></thead>
+            <tbody>${worstRows || `<tr><td colspan="5" class="empty">No flagged ASINs</td></tr>`}</tbody>
+          </table>
+        </div>
       </div>
+      ${footnote()}
     </div>
 
-    ${footnote()}`;
+    <div class="tab-panel${activeTab === "brands" ? " active" : ""}" data-panel="brands" data-testid="panel-brands">
+      <div class="empty" style="padding:40px 0;font-size:14px">Brands panel — coming in Task 8</div>
+    </div>
+
+    <div class="tab-panel${activeTab === "rank" ? " active" : ""}" data-panel="rank" data-testid="panel-rank">
+      <div class="empty" style="padding:40px 0;font-size:14px">Rankings panel — coming in Task 9</div>
+    </div>`;
 
   // Clicking a leaderboard row selects that store.
   document.querySelectorAll("#lbBody tr").forEach(tr =>
     tr.onclick = () => { activeView = tr.dataset.id; render(); });
+  wireTabBar();
   fillSlots(document.getElementById("main"));
 }
 
