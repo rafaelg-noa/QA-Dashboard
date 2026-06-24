@@ -264,21 +264,87 @@ test("rankings table renders brand rows; toggle switches to store grouping", asy
 // Task 11: Live threshold recompute for verdict/brands/briefing — no refetch
 // --------------------------------------------------------------------------
 test("tightening ratingDrop re-derives verdict WITHOUT an extra data.json fetch", async ({ page }) => {
+  // Instrument requests BEFORE navigating so the initial load is counted.
   let dataFetches = 0;
   page.on("request", (r) => { if (r.url().includes("data.json")) dataFetches += 1; });
   await page.goto("/");
+
+  // Wait for full render (callouts populated = fetch done + computeBrands ran).
   await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
-  const fetchesAfterLoad = dataFetches;            // baseline (initial load)
+  await page.locator('[data-testid="callout"]').first().waitFor({ state: "visible" });
+  const fetchesAfterLoad = dataFetches;   // should be exactly 1
 
-  await page.locator("#settingsBtn").click();      // open settings drawer
-  const drop = page.locator('input[data-key="ratingDrop"]');
-  await drop.fill("-0.01");                          // tightens "declining" -> likely flips toward slipping
-  await drop.dispatchEvent("input");                // ensure oninput fires
+  // --- Capture baseline verdict text (expected "Stable" from data) ---
+  const verdictEl = page.locator('[data-testid="verdict-state"]');
+  const verdictBefore = await verdictEl.innerText();
 
-  // No new data.json fetch was triggered by the threshold change (live recompute).
+  // Open the Settings drawer.
+  await page.locator("#settingsBtn").click();
+  const drawer = page.locator("#drawer");
+  await expect(drawer).toHaveClass(/open/);
+
+  // -----------------------------------------------------------------------
+  // FLIP 1 — Verdict: set ratingDrop = 0 (default is -0.2).
+  //   Why it flips: data.json brands TreeActiv, NatriSweet, Teaki Hut all
+  //   have ratingDelta = 0.  computeBrands filters `ratingDelta <= ratingDrop`,
+  //   so 0 <= 0 is true for all three → decliningBrands = 3 ≥ 2 →
+  //   portfolioVerdict returns "slipping" (was "stable").
+  // -----------------------------------------------------------------------
+  const dropInput = page.locator('input[data-key="ratingDrop"]');
+  await expect(dropInput).toBeVisible();
+  await dropInput.fill("0");
+  await dropInput.dispatchEvent("input");
+  await page.waitForTimeout(100);   // flush synchronous re-render
+
+  // ASSERT: no extra fetch during live recompute (the core §6.1 guarantee).
   expect(dataFetches).toBe(fetchesAfterLoad);
-  // verdict still renders a valid state after recompute
-  await expect(page.locator('[data-testid="verdict-state"]')).toBeVisible();
+
+  // ASSERT: verdict text actually changed — recompute reached the DOM.
+  const verdictAfterDrop = await verdictEl.innerText();
+  expect(verdictAfterDrop).not.toBe(verdictBefore);
+  // Specifically, the state must now contain "Slipping".
+  expect(verdictAfterDrop.toLowerCase()).toContain("slipping");
+
+  // -----------------------------------------------------------------------
+  // FLIP 2 — Brand health: set returnRate threshold = 1.0 (default is 5.0).
+  //   Why it flips: brands with returnRate > 1.0 are reclassified bad:
+  //     Unbranded  returnRate ≈ 2.04 %   (currently good)
+  //     TreeActiv  returnRate ≈ 1.79 %   (currently good)
+  //     NatriSweet returnRate ≈ 1.01 %   (currently good)
+  //   storeHealth: returnRate >= threshold → "bad".
+  //   The brand-card element gets class "bad" instead of "good".
+  // -----------------------------------------------------------------------
+
+  // Close the settings drawer first, then navigate to the All Brands tab.
+  await page.click("#drawerClose");
+  await expect(drawer).not.toHaveClass(/open/);
+
+  // Open settings again and tighten returnRate.
+  await page.locator("#settingsBtn").click();
+  await expect(drawer).toHaveClass(/open/);
+  const returnRateInput = page.locator('input[data-key="returnRate"]');
+  await expect(returnRateInput).toBeVisible();
+  await returnRateInput.fill("1");
+  await returnRateInput.dispatchEvent("input");
+  await page.waitForTimeout(100);
+
+  // ASSERT: still no extra fetch.
+  expect(dataFetches).toBe(fetchesAfterLoad);
+
+  // Go to All Brands tab to inspect brand cards.
+  await page.click("#drawerClose");
+  await expect(drawer).not.toHaveClass(/open/);
+  await page.locator('[data-testid="tab-brands"]').click();
+  await page.locator('[data-testid="panel-brands"]').waitFor({ state: "visible" });
+
+  // ASSERT: at least one brand card now has class "bad" (Unbranded has returnRate ≈ 2.04).
+  const badCards = page.locator('[data-testid="brand-card"].bad');
+  await expect(badCards.first()).toBeVisible();
+  const badCount = await badCards.count();
+  expect(badCount).toBeGreaterThanOrEqual(1);
+
+  // ASSERT: no further fetches have occurred throughout all the above steps.
+  expect(dataFetches).toBe(fetchesAfterLoad);
 });
 
 // --------------------------------------------------------------------------
