@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVED / EXECUTED.** This implementation plan is complete (Phase 1 shipped) and its frontend portion was later reworked by `2026-06-24-executive-qa-dashboard.md`. For the **current** system state, see [`README.md`](../../../README.md) and [`DEPLOY.md`](../../../DEPLOY.md). Retained as a historical execution record — do not re-run; auth, host, and UI described here are superseded.
+
 # QA Dashboard — Phase 1 Live Data Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

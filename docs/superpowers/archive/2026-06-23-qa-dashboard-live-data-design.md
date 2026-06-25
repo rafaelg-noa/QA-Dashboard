@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVED / SUPERSEDED.** This is the original "analyst" design (2026-06-23). It was superseded by the executive redesign in `2026-06-24-executive-qa-dashboard-design.md`, and Phase 1 has since shipped. For the **current** system state, see [`README.md`](../../../README.md) and [`DEPLOY.md`](../../../DEPLOY.md). Retained as historical design provenance only — do not treat as the source of truth for the live build (auth, host, and UI have all changed).
+
 # QA Dashboard — Live Data, Phase 1 (Design Spec)
 
 **Date:** 2026-06-23

@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVED.** This is the design spec that drove the shipped Phase 1 executive dashboard. Phase 1 is now live and has drifted from some details here (auth is Google OAuth; host is a Cloudflare Worker). For the **current** system state, see [`README.md`](../../../README.md) and [`DEPLOY.md`](../../../DEPLOY.md). Retained as historical design provenance.
+
 # Executive QA Dashboard — Design
 
 **Date:** 2026-06-24
