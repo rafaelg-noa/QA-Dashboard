@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-26T10:40:31.889Z",
+  "generatedAt": "2026-06-26T18:12:36.598Z",
   "refreshIntervalHours": 12,
   "window": {
     "days": 30
@@ -15,10 +15,10 @@
   },
   "portfolio": {
     "returnRate": 2.1161541511950683,
-    "returnDelta": -0.378442720485213,
+    "returnDelta": -0.3821058583290897,
     "refundExposure": 12455.14,
-    "flaggedCount": 48,
-    "avgRating": 4.186847153240772,
+    "flaggedCount": 49,
+    "avgRating": 4.186898567549077,
     "ratingDelta": 0,
     "storeCount": 9,
     "trend": [
@@ -29,7 +29,7 @@
       3.0243583455942455,
       2.5280455048190866,
       2.184691664084289,
-      1.9990701999070202,
+      2.0145668681233535,
       2.4691358024691357,
       2.408854166666667,
       2.0395053797976552,
@@ -56,7 +56,7 @@
         "health": "warn",
         "returnRate": 1.9267822736030826,
         "refundSpike": 171.40433553251643,
-        "avgRating": 4.6379084967320265,
+        "avgRating": 4.638511326860842,
         "flagged": 2
       },
       {
@@ -65,7 +65,7 @@
         "health": "good",
         "returnRate": 2.4709302325581395,
         "refundSpike": -28.680641815318015,
-        "avgRating": 4.035359601581955,
+        "avgRating": 4.035354422964265,
         "flagged": 4
       },
       {
@@ -74,7 +74,7 @@
         "health": "good",
         "returnRate": 2.338052338052338,
         "refundSpike": -1.1418624891210272,
-        "avgRating": 4.317484818986698,
+        "avgRating": 4.317587660382602,
         "flagged": 12
       },
       {
@@ -83,7 +83,7 @@
         "health": "good",
         "returnRate": 2.0972222222222223,
         "refundSpike": -28.636594354820904,
-        "avgRating": 4.093374519321691,
+        "avgRating": 4.093409778225808,
         "flagged": 8
       },
       {
@@ -100,9 +100,9 @@
         "name": "body and mind",
         "health": "good",
         "returnRate": 1.855541718555417,
-        "refundSpike": -5.075539179916392,
-        "avgRating": 4.1865459752480305,
-        "flagged": 19
+        "refundSpike": -6.028467583624296,
+        "avgRating": 4.186537399521384,
+        "flagged": 20
       },
       {
         "id": "standmore",
@@ -138,7 +138,7 @@
         "name": "Unbranded",
         "health": "bad",
         "rating": 5,
-        "ratingDelta": null,
+        "ratingDelta": 0,
         "returnRate": 10,
         "refundSpike": null,
         "refundExposure": 34.98,
@@ -163,7 +163,7 @@
         "name": "Era-Organics",
         "health": "warn",
         "rating": 4.8,
-        "ratingDelta": null,
+        "ratingDelta": 0,
         "returnRate": 1.6355140186915886,
         "refundSpike": 173.42616768204232,
         "refundExposure": 94.25,
@@ -240,7 +240,7 @@
         "rating": 4.1,
         "ratingDelta": 0,
         "returnRate": 2.376180933295162,
-        "refundSpike": 6.851718163442057,
+        "refundSpike": 4.51351866628061,
         "refundExposure": 1480.11,
         "flagged": 10,
         "trend": [
@@ -251,7 +251,7 @@
           1.3713080168776373,
           1.9836639439906651,
           2.0737327188940093,
-          2.2592152199762188,
+          2.3781212841854935,
           3.015075376884422,
           2.628120893561104,
           2.053915275994865,
@@ -288,7 +288,7 @@
         "name": "Tejonova",
         "health": "good",
         "rating": 4.04,
-        "ratingDelta": -0.03,
+        "ratingDelta": 0,
         "returnRate": 1.9440124416796267,
         "refundSpike": -20.751391899689644,
         "refundExposure": 508.15,
@@ -362,12 +362,12 @@
         "id": "optml",
         "name": "OPTML",
         "health": "good",
-        "rating": 4.57,
-        "ratingDelta": -0.03,
+        "rating": 4.5,
+        "ratingDelta": -0.07,
         "returnRate": 0.5102040816326531,
         "refundSpike": null,
         "refundExposure": 24.99,
-        "flagged": 0,
+        "flagged": 1,
         "trend": [
           null,
           0,
@@ -422,11 +422,11 @@
       "health": "good",
       "kpis": {
         "returnRate": 1.855541718555417,
-        "returnDelta": 0.17378233951272648,
-        "refundSpike": -5.075539179916392,
-        "reviewRating": 4.1865459752480305,
-        "reviewDelta": -0.001360418968127327,
-        "ratingCount": 48885,
+        "returnDelta": 0.16202178441452575,
+        "refundSpike": -6.028467583624296,
+        "reviewRating": 4.186537399521384,
+        "reviewDelta": -0.001394939763964738,
+        "ratingCount": 48891,
         "conversion": null
       },
       "trend": [
@@ -437,7 +437,7 @@
         1.630695443645084,
         1.5544041450777202,
         1.8200728029121163,
-        1.9968470835522858,
+        2.049395691014188,
         1.8763796909492272,
         1.8497757847533634,
         1.9375672766415502,
@@ -498,7 +498,7 @@
           "refundDelta": "+7%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 163,
+          "ratingCount": 164,
           "conversion": null,
           "flags": []
         },
@@ -574,7 +574,7 @@
           "refundDelta": "+11%",
           "reviewRating": 4.1,
           "reviewDelta": 0,
-          "ratingCount": 7320,
+          "ratingCount": 7321,
           "conversion": null,
           "flags": []
         },
@@ -614,11 +614,13 @@
           "returnRate": 0.5291005291005291,
           "refundSpike": null,
           "refundDelta": "n/a",
-          "reviewRating": 4.9,
-          "reviewDelta": -0.1,
-          "ratingCount": 11,
+          "reviewRating": 4.7,
+          "reviewDelta": -0.2,
+          "ratingCount": 14,
           "conversion": null,
-          "flags": []
+          "flags": [
+            "ratingDrop"
+          ]
         },
         {
           "asin": "B0B7RY2SXG",
@@ -646,7 +648,7 @@
           "refundDelta": "n/a",
           "reviewRating": 5,
           "reviewDelta": 0,
-          "ratingCount": 7,
+          "ratingCount": 8,
           "conversion": null,
           "flags": []
         },
@@ -786,8 +788,8 @@
           "title": "TreeActiv Crepey Skin Repair Treatment Original Formula, 8 fl oz, Firming Cream For Face & Neck, Skin Firming Lotion with Hyaluronic Acid, Crepey Treatment to Address Dry Crepe",
           "brand": "TreeActiv",
           "returnRate": 50,
-          "refundSpike": 534.640522875817,
-          "refundDelta": "+535%",
+          "refundSpike": 198.61609431060992,
+          "refundDelta": "+199%",
           "reviewRating": 4,
           "reviewDelta": 0,
           "ratingCount": 163,
@@ -1426,9 +1428,9 @@
           "returnRate": 0,
           "refundSpike": null,
           "refundDelta": "n/a",
-          "reviewRating": 5,
-          "reviewDelta": 0,
-          "ratingCount": 2,
+          "reviewRating": null,
+          "reviewDelta": null,
+          "ratingCount": null,
           "conversion": null,
           "flags": []
         },
@@ -1441,8 +1443,8 @@
           "refundSpike": null,
           "refundDelta": "n/a",
           "reviewRating": 5,
-          "reviewDelta": null,
-          "ratingCount": 3,
+          "reviewDelta": 0,
+          "ratingCount": 4,
           "conversion": null,
           "flags": []
         },
@@ -1500,7 +1502,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.5,
           "reviewDelta": 0,
-          "ratingCount": 83,
+          "ratingCount": 84,
           "conversion": null,
           "flags": []
         },
@@ -1925,7 +1927,7 @@
         "returnDelta": -1.1775037233147991,
         "refundSpike": -20.751391899689644,
         "reviewRating": 4.040808698606863,
-        "reviewDelta": -0.02799864084267754,
+        "reviewDelta": 0,
         "ratingCount": 2943,
         "conversion": null
       },
@@ -1967,7 +1969,7 @@
           "refundSpike": -59.81543624161074,
           "refundDelta": "-60%",
           "reviewRating": 4.1,
-          "reviewDelta": -0.1,
+          "reviewDelta": 0,
           "ratingCount": 412,
           "conversion": null,
           "flags": []
@@ -1995,7 +1997,7 @@
           "refundSpike": 129.29254302103251,
           "refundDelta": "+129%",
           "reviewRating": 4.1,
-          "reviewDelta": -0.1,
+          "reviewDelta": 0,
           "ratingCount": 412,
           "conversion": null,
           "flags": [
@@ -2144,9 +2146,9 @@
         "returnRate": 2.0972222222222223,
         "returnDelta": -1.878202425410593,
         "refundSpike": -28.636594354820904,
-        "reviewRating": 4.093374519321691,
-        "reviewDelta": -0.0028052701254491583,
-        "ratingCount": 15863,
+        "reviewRating": 4.093409778225808,
+        "reviewDelta": 0,
+        "ratingCount": 15872,
         "conversion": null
       },
       "trend": [
@@ -2202,7 +2204,7 @@
           "refundDelta": "-26%",
           "reviewRating": 3.8,
           "reviewDelta": 0,
-          "ratingCount": 414,
+          "ratingCount": 415,
           "conversion": null,
           "flags": []
         },
@@ -2216,7 +2218,7 @@
           "refundDelta": "+72%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": [
             "refund"
@@ -2276,7 +2278,7 @@
           "refundDelta": "+251%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": [
             "refund"
@@ -2305,7 +2307,7 @@
           "refundSpike": 49.99999999999999,
           "refundDelta": "+50%",
           "reviewRating": 3.8,
-          "reviewDelta": -0.1,
+          "reviewDelta": 0,
           "ratingCount": 445,
           "conversion": null,
           "flags": [
@@ -2322,7 +2324,7 @@
           "refundDelta": "+90%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": [
             "refund"
@@ -2366,7 +2368,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": []
         },
@@ -2380,7 +2382,7 @@
           "refundDelta": "+65%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": [
             "return",
@@ -2397,7 +2399,7 @@
           "refundDelta": "-45%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": []
         },
@@ -2427,7 +2429,7 @@
           "refundDelta": "-100%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": []
         },
@@ -2455,7 +2457,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 176,
+          "ratingCount": 177,
           "conversion": null,
           "flags": [
             "return"
@@ -2541,9 +2543,9 @@
         "returnRate": 2.4709302325581395,
         "returnDelta": 0.03849780012570703,
         "refundSpike": -28.680641815318015,
-        "reviewRating": 4.035359601581955,
+        "reviewRating": 4.035354422964265,
         "reviewDelta": 0,
-        "ratingCount": 6827,
+        "ratingCount": 6828,
         "conversion": null
       },
       "trend": [
@@ -2641,7 +2643,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4,
           "reviewDelta": 0,
-          "ratingCount": 339,
+          "ratingCount": 340,
           "conversion": null,
           "flags": []
         },
@@ -2971,9 +2973,9 @@
         "returnRate": 1.9267822736030826,
         "returnDelta": -0.38803254121173225,
         "refundSpike": 171.40433553251643,
-        "reviewRating": 4.6379084967320265,
+        "reviewRating": 4.638511326860842,
         "reviewDelta": 0,
-        "ratingCount": 306,
+        "ratingCount": 309,
         "conversion": null
       },
       "trend": [
@@ -3014,7 +3016,7 @@
           "refundSpike": 173.42616768204232,
           "refundDelta": "+173%",
           "reviewRating": 4.8,
-          "reviewDelta": null,
+          "reviewDelta": 0,
           "ratingCount": 50,
           "conversion": null,
           "flags": [
@@ -3045,7 +3047,7 @@
           "refundDelta": "-36%",
           "reviewRating": 4.7,
           "reviewDelta": 0,
-          "ratingCount": 136,
+          "ratingCount": 139,
           "conversion": null,
           "flags": []
         },
@@ -3314,9 +3316,9 @@
         "returnRate": 2.338052338052338,
         "returnDelta": 0.04344854612234261,
         "refundSpike": -1.1418624891210272,
-        "reviewRating": 4.317484818986698,
-        "reviewDelta": 0.00034302136930422283,
-        "ratingCount": 21573,
+        "reviewRating": 4.317587660382602,
+        "reviewDelta": 0.00005558386215202187,
+        "ratingCount": 21589,
         "conversion": null
       },
       "trend": [
@@ -3358,7 +3360,7 @@
           "refundDelta": "-4%",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2115,
+          "ratingCount": 2116,
           "conversion": null,
           "flags": []
         },
@@ -3386,7 +3388,7 @@
           "refundDelta": "+201%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 154,
+          "ratingCount": 155,
           "conversion": null,
           "flags": [
             "refund"
@@ -3416,7 +3418,7 @@
           "refundDelta": "+36%",
           "reviewRating": 4.7,
           "reviewDelta": 0,
-          "ratingCount": 136,
+          "ratingCount": 139,
           "conversion": null,
           "flags": [
             "refund"
@@ -3476,7 +3478,7 @@
           "refundDelta": "+407%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 154,
+          "ratingCount": 155,
           "conversion": null,
           "flags": [
             "refund"
@@ -3491,7 +3493,7 @@
           "refundSpike": -24.22880938030797,
           "refundDelta": "-24%",
           "reviewRating": 4.1,
-          "reviewDelta": -0.1,
+          "reviewDelta": 0,
           "ratingCount": 61,
           "conversion": null,
           "flags": []
@@ -3519,7 +3521,7 @@
           "refundSpike": 70.46384720327423,
           "refundDelta": "+70%",
           "reviewRating": 4.1,
-          "reviewDelta": -0.1,
+          "reviewDelta": 0,
           "ratingCount": 61,
           "conversion": null,
           "flags": [
@@ -3536,7 +3538,7 @@
           "refundDelta": "-6%",
           "reviewRating": 4.4,
           "reviewDelta": 0,
-          "ratingCount": 409,
+          "ratingCount": 410,
           "conversion": null,
           "flags": []
         },
@@ -3550,7 +3552,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2115,
+          "ratingCount": 2116,
           "conversion": null,
           "flags": []
         },
@@ -3578,7 +3580,7 @@
           "refundDelta": "+845%",
           "reviewRating": 4.7,
           "reviewDelta": 0,
-          "ratingCount": 136,
+          "ratingCount": 139,
           "conversion": null,
           "flags": [
             "return",
@@ -3698,7 +3700,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2115,
+          "ratingCount": 2116,
           "conversion": null,
           "flags": []
         },
@@ -3853,7 +3855,7 @@
           "refundSpike": null,
           "refundDelta": "n/a",
           "reviewRating": 4.3,
-          "reviewDelta": 0.1,
+          "reviewDelta": 0,
           "ratingCount": 245,
           "conversion": null,
           "flags": []
@@ -3868,7 +3870,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 22,
+          "ratingCount": 23,
           "conversion": null,
           "flags": []
         },
@@ -4002,7 +4004,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.4,
           "reviewDelta": 0,
-          "ratingCount": 409,
+          "ratingCount": 410,
           "conversion": null,
           "flags": []
         },
@@ -4015,7 +4017,7 @@
           "refundSpike": -66.66666666666666,
           "refundDelta": "-67%",
           "reviewRating": 4.1,
-          "reviewDelta": -0.1,
+          "reviewDelta": 0,
           "ratingCount": 61,
           "conversion": null,
           "flags": []
@@ -4030,7 +4032,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2115,
+          "ratingCount": 2116,
           "conversion": null,
           "flags": []
         },
@@ -4072,7 +4074,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.4,
           "reviewDelta": 0,
-          "ratingCount": 409,
+          "ratingCount": 410,
           "conversion": null,
           "flags": []
         },
