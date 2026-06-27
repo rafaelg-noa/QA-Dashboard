@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-27T09:18:59.920Z",
+  "generatedAt": "2026-06-27T15:55:15.610Z",
   "refreshIntervalHours": 12,
   "window": {
     "days": 30
@@ -15,10 +15,10 @@
   },
   "portfolio": {
     "returnRate": 2.112701061676668,
-    "returnDelta": -0.3619648217129634,
+    "returnDelta": -0.3546215995070594,
     "refundExposure": 12561.25,
-    "flaggedCount": 50,
-    "avgRating": 4.186898567549077,
+    "flaggedCount": 49,
+    "avgRating": 4.187507771376463,
     "ratingDelta": 0,
     "storeCount": 9,
     "trend": [
@@ -26,7 +26,7 @@
       2.947658402203857,
       3.3481184718843897,
       2.843016069221261,
-      3.1790022823606128,
+      3.146397130746658,
       2.2974036191974823,
       2.0493066255778123,
       2.034110467845408,
@@ -56,7 +56,7 @@
         "health": "warn",
         "returnRate": 1.8691588785046727,
         "refundSpike": 171.40433553251643,
-        "avgRating": 4.638511326860842,
+        "avgRating": 4.6387820512820515,
         "flagged": 2
       },
       {
@@ -74,7 +74,7 @@
         "health": "good",
         "returnRate": 2.3721275018532246,
         "refundSpike": 3.3356327729270343,
-        "avgRating": 4.317587660382602,
+        "avgRating": 4.317705874184142,
         "flagged": 12
       },
       {
@@ -83,7 +83,7 @@
         "health": "good",
         "returnRate": 2.049959272332338,
         "refundSpike": -28.702951770906786,
-        "avgRating": 4.093409778225808,
+        "avgRating": 4.093470184497197,
         "flagged": 8
       },
       {
@@ -100,9 +100,9 @@
         "name": "body and mind",
         "health": "good",
         "returnRate": 1.8436578171091444,
-        "refundSpike": -3.991773518850655,
-        "avgRating": 4.186537399521384,
-        "flagged": 22
+        "refundSpike": -3.2113261985439316,
+        "avgRating": 4.187618365886081,
+        "flagged": 21
       },
       {
         "id": "standmore",
@@ -240,7 +240,7 @@
         "rating": 4.1,
         "ratingDelta": 0,
         "returnRate": 2.3163841807909606,
-        "refundSpike": 6.497079799254503,
+        "refundSpike": 7.521871504448339,
         "refundExposure": 1451.47,
         "flagged": 10,
         "trend": [
@@ -248,7 +248,7 @@
           1.4285714285714286,
           2.943800178412132,
           1.9169329073482428,
-          1.164021164021164,
+          1.0582010582010581,
           2.2300469483568075,
           2.0361990950226243,
           2.2249690976514214,
@@ -337,10 +337,10 @@
         "id": "purisure",
         "name": "Purisure",
         "health": "good",
-        "rating": 4.32,
+        "rating": 4.33,
         "ratingDelta": 0,
         "returnRate": 1.5296803652968036,
-        "refundSpike": -14.219767236496745,
+        "refundSpike": -13.628531307296566,
         "refundExposure": 1408.52,
         "flagged": 11,
         "trend": [
@@ -348,7 +348,7 @@
           1.9736842105263157,
           1.1807447774750226,
           1.1904761904761905,
-          2.232142857142857,
+          2.142857142857143,
           1.3120899718837862,
           1.4150943396226416,
           1.6299137104506232,
@@ -362,12 +362,12 @@
         "id": "optml",
         "name": "OPTML",
         "health": "good",
-        "rating": 4.5,
-        "ratingDelta": -0.07,
+        "rating": 4.54,
+        "ratingDelta": 0,
         "returnRate": 0.4761904761904762,
         "refundSpike": null,
         "refundExposure": 24.99,
-        "flagged": 1,
+        "flagged": 0,
         "trend": [
           0,
           null,
@@ -422,11 +422,11 @@
       "health": "good",
       "kpis": {
         "returnRate": 1.8436578171091444,
-        "returnDelta": 0.14974642170521157,
-        "refundSpike": -3.991773518850655,
-        "reviewRating": 4.186537399521384,
-        "reviewDelta": -0.001394939763964738,
-        "ratingCount": 48891,
+        "returnDelta": 0.17343749017239962,
+        "refundSpike": -3.2113261985439316,
+        "reviewRating": 4.187618365886081,
+        "reviewDelta": -0.00034361449725926524,
+        "ratingCount": 48895,
         "conversion": null
       },
       "trend": [
@@ -434,7 +434,7 @@
         1.7029328287606436,
         2.06927575348628,
         1.5263417035942886,
-        1.741654571843251,
+        1.644895984518626,
         1.7196456487754037,
         1.6975308641975309,
         1.8898488120950323,
@@ -468,7 +468,7 @@
           "refundDelta": "-38%",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 3081,
+          "ratingCount": 3080,
           "conversion": null,
           "flags": []
         },
@@ -528,7 +528,7 @@
           "refundDelta": "-34%",
           "reviewRating": 3.9,
           "reviewDelta": 0,
-          "ratingCount": 4040,
+          "ratingCount": 4039,
           "conversion": null,
           "flags": []
         },
@@ -617,12 +617,10 @@
           "refundSpike": null,
           "refundDelta": "n/a",
           "reviewRating": 4.7,
-          "reviewDelta": -0.2,
-          "ratingCount": 14,
+          "reviewDelta": 0,
+          "ratingCount": 16,
           "conversion": null,
-          "flags": [
-            "ratingDrop"
-          ]
+          "flags": []
         },
         {
           "asin": "B0B7RY2SXG",
@@ -634,7 +632,7 @@
           "refundDelta": "+44%",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 412,
+          "ratingCount": 413,
           "conversion": null,
           "flags": [
             "refund"
@@ -650,7 +648,7 @@
           "refundDelta": "n/a",
           "reviewRating": 5,
           "reviewDelta": 0,
-          "ratingCount": 8,
+          "ratingCount": 9,
           "conversion": null,
           "flags": []
         },
@@ -909,9 +907,9 @@
           "returnRate": 0,
           "refundSpike": -100,
           "refundDelta": "-100%",
-          "reviewRating": 4.1,
-          "reviewDelta": 0,
-          "ratingCount": 45,
+          "reviewRating": 4,
+          "reviewDelta": -0.1,
+          "ratingCount": 46,
           "conversion": null,
           "flags": []
         },
@@ -1013,7 +1011,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 3081,
+          "ratingCount": 3080,
           "conversion": null,
           "flags": []
         },
@@ -1083,7 +1081,7 @@
           "refundDelta": "-30%",
           "reviewRating": 4.4,
           "reviewDelta": 0,
-          "ratingCount": 313,
+          "ratingCount": 312,
           "conversion": null,
           "flags": [
             "return"
@@ -1201,9 +1199,9 @@
           "returnRate": 0,
           "refundSpike": null,
           "refundDelta": "n/a",
-          "reviewRating": 4.4,
-          "reviewDelta": 0,
-          "ratingCount": 265,
+          "reviewRating": 4.5,
+          "reviewDelta": 0.1,
+          "ratingCount": 266,
           "conversion": null,
           "flags": []
         },
@@ -1257,9 +1255,9 @@
           "returnRate": 10,
           "refundSpike": null,
           "refundDelta": "n/a",
-          "reviewRating": 4.4,
-          "reviewDelta": 0,
-          "ratingCount": 265,
+          "reviewRating": 4.5,
+          "reviewDelta": 0.1,
+          "ratingCount": 266,
           "conversion": null,
           "flags": [
             "return"
@@ -1313,11 +1311,11 @@
           "title": "Purisure Alpha GPC Powder, 25 g, Pure Alpha GPC Choline Supplement for Brain and Focus, CDP Choline Supplements for Memory Performance & Concentration, No Fillers, Non-GMO, Offers 42 Servings",
           "brand": "Purisure",
           "returnRate": 15,
-          "refundSpike": 66.6814946619217,
-          "refundDelta": "+67%",
+          "refundSpike": 233.3629893238434,
+          "refundDelta": "+233%",
           "reviewRating": 4.4,
           "reviewDelta": 0,
-          "ratingCount": 313,
+          "ratingCount": 312,
           "conversion": null,
           "flags": [
             "return",
@@ -1420,7 +1418,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 3081,
+          "ratingCount": 3080,
           "conversion": null,
           "flags": []
         },
@@ -1432,9 +1430,9 @@
           "returnRate": 0,
           "refundSpike": null,
           "refundDelta": "n/a",
-          "reviewRating": null,
+          "reviewRating": 5,
           "reviewDelta": null,
-          "ratingCount": null,
+          "ratingCount": 3,
           "conversion": null,
           "flags": []
         },
@@ -2147,9 +2145,9 @@
         "returnRate": 2.049959272332338,
         "returnDelta": -1.837536248986186,
         "refundSpike": -28.702951770906786,
-        "reviewRating": 4.093409778225808,
+        "reviewRating": 4.093470184497197,
         "reviewDelta": 0,
-        "ratingCount": 15872,
+        "ratingCount": 15881,
         "conversion": null
       },
       "trend": [
@@ -2219,7 +2217,7 @@
           "refundDelta": "+62%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": [
             "refund"
@@ -2279,7 +2277,7 @@
           "refundDelta": "+110%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": [
             "refund"
@@ -2325,7 +2323,7 @@
           "refundDelta": "+90%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": [
             "refund"
@@ -2355,7 +2353,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 869,
+          "ratingCount": 870,
           "conversion": null,
           "flags": []
         },
@@ -2369,7 +2367,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": []
         },
@@ -2383,7 +2381,7 @@
           "refundDelta": "+65%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": [
             "return",
@@ -2400,7 +2398,7 @@
           "refundDelta": "-45%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": []
         },
@@ -2430,7 +2428,7 @@
           "refundDelta": "-100%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": []
         },
@@ -2458,7 +2456,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 177,
+          "ratingCount": 178,
           "conversion": null,
           "flags": [
             "return"
@@ -2975,9 +2973,9 @@
         "returnRate": 1.8691588785046727,
         "returnDelta": -0.3830933737475797,
         "refundSpike": 171.40433553251643,
-        "reviewRating": 4.638511326860842,
+        "reviewRating": 4.6387820512820515,
         "reviewDelta": 0,
-        "ratingCount": 309,
+        "ratingCount": 312,
         "conversion": null
       },
       "trend": [
@@ -3019,7 +3017,7 @@
           "refundDelta": "+173%",
           "reviewRating": 4.8,
           "reviewDelta": 0,
-          "ratingCount": 50,
+          "ratingCount": 51,
           "conversion": null,
           "flags": [
             "refund"
@@ -3035,7 +3033,7 @@
           "refundDelta": "-6%",
           "reviewRating": 4.5,
           "reviewDelta": 0,
-          "ratingCount": 118,
+          "ratingCount": 119,
           "conversion": null,
           "flags": []
         },
@@ -3049,7 +3047,7 @@
           "refundDelta": "-36%",
           "reviewRating": 4.7,
           "reviewDelta": 0,
-          "ratingCount": 139,
+          "ratingCount": 140,
           "conversion": null,
           "flags": []
         },
@@ -3318,9 +3316,9 @@
         "returnRate": 2.3721275018532246,
         "returnDelta": 0.10561714624556551,
         "refundSpike": 3.3356327729270343,
-        "reviewRating": 4.317587660382602,
-        "reviewDelta": 0.00005558386215202187,
-        "ratingCount": 21589,
+        "reviewRating": 4.317705874184142,
+        "reviewDelta": 0.00005554784057769755,
+        "ratingCount": 21603,
         "conversion": null
       },
       "trend": [
@@ -3362,7 +3360,7 @@
           "refundDelta": "-2%",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2116,
+          "ratingCount": 2117,
           "conversion": null,
           "flags": []
         },
@@ -3390,7 +3388,7 @@
           "refundDelta": "+201%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 155,
+          "ratingCount": 156,
           "conversion": null,
           "flags": [
             "refund"
@@ -3420,7 +3418,7 @@
           "refundDelta": "+36%",
           "reviewRating": 4.7,
           "reviewDelta": 0,
-          "ratingCount": 139,
+          "ratingCount": 140,
           "conversion": null,
           "flags": [
             "refund"
@@ -3464,7 +3462,7 @@
           "refundDelta": "-71%",
           "reviewRating": 4,
           "reviewDelta": 0,
-          "ratingCount": 477,
+          "ratingCount": 478,
           "conversion": null,
           "flags": []
         },
@@ -3478,7 +3476,7 @@
           "refundDelta": "+407%",
           "reviewRating": 4.2,
           "reviewDelta": 0,
-          "ratingCount": 155,
+          "ratingCount": 156,
           "conversion": null,
           "flags": [
             "refund"
@@ -3552,7 +3550,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2116,
+          "ratingCount": 2117,
           "conversion": null,
           "flags": []
         },
@@ -3580,7 +3578,7 @@
           "refundDelta": "n/a",
           "reviewRating": 5,
           "reviewDelta": 0,
-          "ratingCount": 7,
+          "ratingCount": 8,
           "conversion": null,
           "flags": []
         },
@@ -3594,7 +3592,7 @@
           "refundDelta": "+845%",
           "reviewRating": 4.7,
           "reviewDelta": 0,
-          "ratingCount": 139,
+          "ratingCount": 140,
           "conversion": null,
           "flags": [
             "return",
@@ -3714,7 +3712,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2116,
+          "ratingCount": 2117,
           "conversion": null,
           "flags": []
         },
@@ -3742,7 +3740,7 @@
           "refundDelta": "-2%",
           "reviewRating": 4.5,
           "reviewDelta": 0,
-          "ratingCount": 118,
+          "ratingCount": 119,
           "conversion": null,
           "flags": []
         },
@@ -3800,7 +3798,7 @@
           "refundDelta": "-100%",
           "reviewRating": 4.5,
           "reviewDelta": 0,
-          "ratingCount": 118,
+          "ratingCount": 119,
           "conversion": null,
           "flags": []
         },
@@ -4034,7 +4032,7 @@
           "refundDelta": "n/a",
           "reviewRating": 4.3,
           "reviewDelta": 0,
-          "ratingCount": 2116,
+          "ratingCount": 2117,
           "conversion": null,
           "flags": []
         },
@@ -4132,7 +4130,7 @@
           "refundDelta": "n/a",
           "reviewRating": 5,
           "reviewDelta": 0,
-          "ratingCount": 5,
+          "ratingCount": 7,
           "conversion": null,
           "flags": []
         },
